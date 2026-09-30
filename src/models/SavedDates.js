@@ -1,21 +1,5 @@
-export type SavedDateData = {
-  id: string;
-  userId: string;
-  postId: string;
-  title: string;
-  date: string;
-  savedAt: string;
-};
-
 export class SavedDate {
-  id: string;
-  userId: string;
-  postId: string;
-  title: string;
-  date: string;
-  savedAt: string;
-
-  constructor(data: SavedDateData) {
+  constructor(data) {
     this.id = data.id;
     this.userId = data.userId;
     this.postId = data.postId;
@@ -24,7 +8,7 @@ export class SavedDate {
     this.savedAt = data.savedAt;
   }
 
-   toJSON(): SavedDateData {
+   toJSON() {
     return {
       id: this.id,
       userId: this.userId,
@@ -35,7 +19,7 @@ export class SavedDate {
     };
   }
 
-   static fromJSON(data: SavedDateData): SavedDate {
+   static fromJSON(data) {
     return new SavedDate(data);
   }
 }
