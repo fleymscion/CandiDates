@@ -5,7 +5,8 @@ export class User {
     email = "",
     contactNumber = "",
     profileImageUrl = "",
-    role = ""
+    role = "",
+    location = ""
   ) {
     this.id = id;
     this.name = name;
@@ -13,6 +14,7 @@ export class User {
     this.contactNumber = contactNumber;
     this.profileImageUrl = profileImageUrl;
     this.role = role;
+    this.location = location;
   }
 
   toFirebase() {
@@ -22,6 +24,7 @@ export class User {
       contactNumber: this.contactNumber,
       profileImageUrl: this.profileImageUrl,
       role: this.role,
+      location: this.location, 
     };
   }
 }
@@ -32,14 +35,16 @@ export class Employee extends User {
     name = "",
     email = "",
     contactNumber = "",
-    profileImageUrl = "",
+    profileImageUrl = "", 
     role = "Employee",
+    location = "",
     resumeimageUrl = "",
     workExp = [],
     education = [],
     skills = []
   ) {
-    super(id, name, email, contactNumber, profileImageUrl, role);
+    //NOTE workExp & education are used as ARRAY OF OBJECTS!!!
+    super(id, name, email, contactNumber, profileImageUrl, role, location);
     this.resumeimageUrl = resumeimageUrl;
     this.workExp = workExp;
     this.education = education;
@@ -63,12 +68,14 @@ export class Employer extends User {
     name = "",
     email = "",
     contactNumber = "",
-    profileImageUrl = "",
+    profileImageUrl = "", 
     role = "Employer",
+    location = "",
     isVerified = false,
     companyPermitOrRegUrl = ""
   ) {
-    super(id, name, email, contactNumber, profileImageUrl, role);
+    
+    super(id, name, email, contactNumber, profileImageUrl, role, location);
     this.isVerified = isVerified;
     this.companyPermitOrRegUrl = companyPermitOrRegUrl;
   }
