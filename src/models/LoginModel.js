@@ -75,8 +75,15 @@ export class Signup {
     return { isValid: Object.keys(errors).length === 0, errors };
   }
 
-  toUser() {
+  toUserFirebase(authUid = "") {
     const Account = this.role === "Employer" ? Employer : Employee;
-    return new Account("", this.username.trim(), this.email.trim());
+    return new Account(
+      authUid,             // id (from Firebase Auth UID)
+      this.username.trim(),// name
+      this.email.trim(),   // email
+      "",                  // contactNumber
+      "",                  // profileImageUrl
+      this.role            // role
+    );
   }
 }
