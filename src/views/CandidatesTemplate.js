@@ -2,19 +2,24 @@ import React from 'react';
 import { StyleSheet, Text, View, SafeAreaView, Platform, StatusBar } from 'react-native';
 
 
-export default function MyHeader() {
+export default function Template({ title, children }) {
   return (
-    //Safe Area note safe area view is deprecated Snack.expo.dev. does not have is as a dependency
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>App Title</Text>
+        <Text style={styles.headerText}>{title}</Text>
       </View>
+
+      <View style={styles.content}>
+      {children}
+      </View>
+
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: {
+    flex: 1,
     backgroundColor: '#011F5B', 
     borderRadius: 10,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0, 
@@ -33,6 +38,13 @@ const styles = StyleSheet.create({
     fontFamily: "Commissioner",
     fontWeight: '600',
     color: '#ffffff',
-    marginBottom: 10
+    marginBottom: 10,
   },
+
+  content: {
+      flex: 1,
+      backgroundColor: '#F5F9FF',
+      paddingHorizontal: 20,
+      paddingVertical: 20,
+    },
 });
