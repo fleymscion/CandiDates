@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, StyleSheet } from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import Template from './Template'; // <-- Adjust the path if needed
+import Template from './Header'; // <-- Adjust the path if needed
 
 const Drawer = createDrawerNavigator();
 
