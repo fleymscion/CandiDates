@@ -37,7 +37,10 @@ export default function DrawerNavigator() {
       initialRouteName="Home"
       screenOptions={{ 
         headerShown: false, // Hides default header so your Template header displays
-         drawerType: 'front'
+         drawerType: 'front',
+         drawerLabelStyle: {
+           fontSize: 22,
+         },
       }}
     >
       <Drawer.Screen name="Home" component={HomeScreen} />
