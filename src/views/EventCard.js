@@ -1,20 +1,27 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 
-export default function EventCard({ item, onDelete }) {
+export default function EventCard({ item, onDelete, onUnhide }) {
   const isHighlighted = item.classification === 'highlighted';
 
   return (
     <View style={[styles.card, isHighlighted && styles.highlightedCard]}>
-      {/* Optional Delete 'x' Button */}
-      {onDelete && (
+      {/* Show Upward Chevron if in Hidden screen, otherwise show '✕' hide button */}
+      {onUnhide ? (
         <TouchableOpacity 
-          style={styles.deleteButton} 
+          style={styles.actionButton} 
+          onPress={() => onUnhide(item.id)}
+        >
+          <Text style={styles.actionText}>▲</Text>
+        </TouchableOpacity>
+      ) : onDelete ? (
+        <TouchableOpacity 
+          style={styles.actionButton} 
           onPress={() => onDelete(item.id)}
         >
-          <Text style={styles.deleteText}>✕</Text>
+          <Text style={styles.actionText}>✕</Text>
         </TouchableOpacity>
-      )}
+      ) : null}
 
       {/* Image or Placeholder Gray Box */}
       {item.imageUrl ? (
@@ -51,7 +58,7 @@ export default function EventCard({ item, onDelete }) {
 
 const styles = StyleSheet.create({
   card: {
-    flex: 0.5, // Restricts width to 50% per column row
+    flex: 0.5,
     maxWidth: '50%',
     margin: 6,
     backgroundColor: '#FFFFFF',
@@ -68,15 +75,16 @@ const styles = StyleSheet.create({
   },
   highlightedCard: {
     borderColor: '#002060',
-    borderWidth: 2, // Fixed typo from 220
+    borderWidth: 2,
   },
-  deleteButton: {
+  actionButton: {
     position: 'absolute',
     top: 8,
     right: 10,
     zIndex: 10,
+    padding: 4,
   },
-  deleteText: {
+  actionText: {
     fontSize: 14,
     color: '#002060',
     fontWeight: 'bold',
