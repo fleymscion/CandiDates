@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Image, StyleSheet, View } from 'react-native';
 
 
-const LOGO = require('../assets/snack-icon.png'); // PLACEHOLDER REPLACE WITH ACTUAL ASSET LATER
+const LOGO = require('../../assets/images/LOGO_white.png');
 
 const START_BG = '#000714';
 const END_BG = '#011F5B';
