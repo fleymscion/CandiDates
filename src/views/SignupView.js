@@ -7,7 +7,7 @@ export default function SignupView() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [accountType, setAccountType] = useState('employee');
+  const [accountType, setAccountType] = useState('');
 
   return (
   <SafeAreaView style={styles.safeArea}>
