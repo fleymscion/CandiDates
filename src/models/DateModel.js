@@ -28,7 +28,7 @@ export class DateModel {
         time: this.time,
         tags: this.tags,
         description: this.description,
-        this.classification = this.classification;,
+        classification: this.classification;,
         };
     }
 }
