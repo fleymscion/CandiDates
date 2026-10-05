@@ -6,7 +6,8 @@ export class DateModel {
         date = "",
         time = "",
         tags = [],
-        description = ""
+        description = "",
+        classification = "regular" // THIS WILL BE CHANGABLE TO highlighed
     ) {
         this.id = id;
         this.imageUrl = imageUrl;
@@ -15,6 +16,7 @@ export class DateModel {
         this.time = time;
         this.tags = tags;
         this.description = description;
+        this.classification = classification;
     }
 
     toFirebase() {
@@ -26,6 +28,7 @@ export class DateModel {
         time: this.time,
         tags: this.tags,
         description: this.description,
+        this.classification = classification;,
         };
     }
 }
