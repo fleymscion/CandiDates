@@ -1,8 +1,8 @@
 import { registerRootComponent } from "expo";
-import LoginSignupView from "./src/views/LoginSignupView";
+import SignupView from "./src/views/SignupView";
 
 function App() {
-    return <LoginSignupView />; // for testing
+    return <SignupView />; // for testing
 }
 
 registerRootComponent(App);
