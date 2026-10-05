@@ -1,4 +1,4 @@
-export class PostDate {
+export class Date {
     constructor (
         id = "",
         imageUrl = "",
