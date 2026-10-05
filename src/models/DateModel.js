@@ -1,4 +1,4 @@
-export class Date {
+export class DateModel {
     constructor (
         id = "",
         imageUrl = "",
