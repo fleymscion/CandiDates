@@ -29,7 +29,7 @@ export default function SignupView() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
 
         <Image
-          source={require('../../assets/images/LOGO.png')}
+          source={require('../../assets/images/LOGO_dark.png')}
           style={styles.logo}
         />
 
