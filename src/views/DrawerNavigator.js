@@ -1,7 +1,9 @@
 import React from 'react';
 import { Text, StyleSheet } from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import Template from './Header'; // <-- Adjust the path if needed
+import Template from './Header';
+import { GeneralCalendar, HighlightCalendar, HiddenCalendar } from './CalendarScreens';
+import { EventProvider } from './EventContext';
 
 const Drawer = createDrawerNavigator();
 
@@ -29,27 +31,28 @@ function ProfileScreen({ navigation }) {
   );
 }
 
-
-// Export the Navigator so App.js can use it
 export default function DrawerNavigator() {
   return (
-    <Drawer.Navigator 
-      initialRouteName="Home"
-      screenOptions={{ 
-        headerShown: false, // Hides default header so your Template header displays
-         drawerType: 'front',
-         drawerLabelStyle: {
-           fontSize: 22,
-         },
-      }}
-    >
-      <Drawer.Screen name="Home" component={HomeScreen} />
-      <Drawer.Screen name="Settings" component={SettingsScreen} />
-      <Drawer.Screen name="Profile" component={ProfileScreen} />
-    </Drawer.Navigator>
+    <EventProvider>
+      <Drawer.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          headerShown: false,
+          drawerType: 'front',
+          drawerLabelStyle: { fontSize: 22 },
+        }}
+      >
+        <Drawer.Screen name="Home" component={HomeScreen} />
+        <Drawer.Screen name="General Calendar" component={GeneralCalendar} />
+        <Drawer.Screen name="Highlight Calendar" component={HighlightCalendar} />
+        <Drawer.Screen name="Hidden Dates" component={HiddenCalendar} />
+        <Drawer.Screen name="Profile" component={ProfileScreen} />
+        <Drawer.Screen name="Settings" component={SettingsScreen} />
+      </Drawer.Navigator>
+    </EventProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  bodyText: { fontSize: 16, color: '#333' }
+  bodyText: { fontSize: 16, color: '#333333', padding: 16 },
 });
