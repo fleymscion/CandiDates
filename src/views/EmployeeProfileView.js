@@ -5,18 +5,18 @@ import Template from './SafeAreaView';
 import TextStyle from './AppText';
 
 export default function EmployeeProfileView({ navigation, employeeData }) {
-  const candidateName = employeeData?.name || 'Candidate Name';
+  const employeeName = employeeData?.name || 'Employee Name';
   const email = employeeData?.email || 'Email';
 
   return (
     <Template title="Profile" navigation={navigation}>
       <ScrollView style={styles.mainContent} showsVerticalScrollIndicator={false}>
-        {/* Candidate Profile Header Card */}
+        {/* Employee Profile Header Card */}
         <View style={styles.profileHeaderCard}>
           <View style={styles.avatar} />
           <View style={styles.profileInfo}>
-            <TextStyle style={styles.candidateName}>{candidateName}</TextStyle>
-            <TextStyle style={styles.candidateEmail}>{email}</TextStyle>
+            <TextStyle style={styles.employeeName}>{employeeName}</TextStyle>
+            <TextStyle style={styles.employeeEmail}>{email}</TextStyle>
 
             <TouchableOpacity
               style={styles.editProfileBtn}
@@ -27,7 +27,7 @@ export default function EmployeeProfileView({ navigation, employeeData }) {
           </View>
         </View>
 
-        {/* Candidate Specific Menu Options */}
+        {/* Employee Specific Menu Options */}
         <View style={styles.menuList}>
           <TouchableOpacity
             style={styles.menuItem}
@@ -110,12 +110,12 @@ const styles = StyleSheet.create({
     marginLeft: 20,
     justifyContent: 'center',
   },
-  candidateName: {
+  employeeName: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000000',
   },
-  candidateEmail: {
+  employeeEmail: {
     fontSize: 13,
     color: '#777777',
     marginVertical: 4,
