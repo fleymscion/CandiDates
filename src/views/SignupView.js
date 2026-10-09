@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, TextInput, Pressable, Image, ScrollView, SafeAreaView, Platform, StatusBar } from 'react-native';
+import { StyleSheet, View, Text, TextInput, Pressable, Image, ScrollView, SafeAreaView, Platform, StatusBar } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AppText from './AppText';
 
-export default function SignupView() {
+export default function SignupView({ onNavigate }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -12,16 +12,16 @@ export default function SignupView() {
   return (
   <SafeAreaView style={styles.safeArea}>
       <View style={styles.headerContainer}>
-          <Pressable style={{ marginHorizontal: 50 }}>
-              <AppText style={styles.inactiveTab}>
+          <Pressable style={{ marginHorizontal: 50 }} onPress={() => onNavigate('Login')}>
+              <Text style={styles.inactiveTab}>
               Log In
-              </AppText>
+              </Text>
           </Pressable>
 
           <Pressable style={{ marginHorizontal: 50 }}>
-              <AppText style={styles.activeTab}>
+              <Text style={styles.activeTab}>
               Sign Up
-              </AppText>
+              </Text>
           </Pressable>
       </View>
     <View style={styles.content}>
@@ -105,6 +105,8 @@ export default function SignupView() {
             placeholder="Password"
             placeholderTextColor="#777777"
             secureTextEntry={!showPassword}
+            autoCapitalize="none"
+            autoCorrect={false}
           />
 
           <Pressable onPress={() => setShowPassword(!showPassword)}>
@@ -122,6 +124,8 @@ export default function SignupView() {
             placeholder="Confirm Password"
             placeholderTextColor="#777777"
             secureTextEntry={!showConfirmPassword}
+            autoCapitalize="none"
+            autoCorrect={false}
           />
 
           <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
@@ -209,11 +213,13 @@ const styles = StyleSheet.create({
   },
 
   inactiveTab: {
+    fontFamily: 'Commissioner',
     fontSize: 21,
     color: '#7891BD',
   },
 
   activeTab: {
+    fontFamily: 'Commissioner',
     fontSize: 21,
     color: '#FFFFFF',
   },
@@ -233,19 +239,19 @@ const styles = StyleSheet.create({
   },
 
   welcome: {
-    fontSize: 23,
+    fontSize: 26,
     textAlign: 'center',
     marginBottom: 2,
   },
 
   subtitle: {
-    fontSize: 13,
+    fontSize: 16,
     textAlign: 'center',
     marginBottom: 18,
   },
 
   label: {
-    fontSize: 13,
+    fontSize: 16,
     marginBottom: 8,
   },
 
@@ -273,11 +279,11 @@ const styles = StyleSheet.create({
   },
 
   accountText: {
-    fontSize: 14,
+    fontSize: 18,
   },
 
   selectedAccountText: {
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: '600',
     color: '#FFFFFF',
   },
@@ -291,7 +297,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     fontFamily: 'Commissioner',
-    fontSize: 14,
+    fontSize: 18,
     marginBottom: 18,
   },
 
@@ -312,11 +318,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 0,
     fontFamily: 'Commissioner',
-    fontSize: 14,
+    fontSize: 18,
   },
 
   signupButton: {
-    height: 41,
+    height: 46,
     backgroundColor: '#7F9DD5',
     borderRadius: 10,
     justifyContent: 'center',
@@ -344,7 +350,7 @@ const styles = StyleSheet.create({
   },
 
   socialTitle: {
-    fontSize: 13,
+    fontSize: 16,
     marginHorizontal: 8,
   },
 
