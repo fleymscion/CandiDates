@@ -120,6 +120,7 @@ const styles = StyleSheet.create({
     height: LOGO_SIZE,
   },
   title: {
+    fontFamily: 'Commissioner',
     marginLeft: GAP,
     color: '#FFFFFF',
     fontSize: 28,
