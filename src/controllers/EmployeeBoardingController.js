@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Alert } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
-import ProfileSetupView from './EmployeeOnboarding';
+import ProfileSetupView from '../view/EmployeeOnboarding';
 
 const TOTAL_STEPS = 6;
 const MAX_FILE_BYTES = 5 * 1024 * 1024; 
