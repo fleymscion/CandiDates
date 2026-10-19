@@ -6,13 +6,26 @@ import SignupView from './src/views/SignupView';
 import SplashScreen from './src/views/SplashScreen';
 import LoginView from './src/views/LoginView';
 import ForgotPassView from './src/views/ForgotPassView';
-import VerifyCodeView from './src/views/VerifyCodeView';
-import ConfirmPassResetView from './src/views/ConfirmPassResetView';
-import NewPasswordView from './src/views/NewPasswordView';
+import ResetEmailView from './src/views/ResetEmailSentView';
+import ProfileSetupView from './src/views/EmployeeOnboarding';
 
 function App() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [currentScreen, setCurrentScreen] = useState("Splash");
+  const [email, setEmail] = useState('');
+  const [userData, setUserData] = useState(null);
+
+  const handleNavigate = (screen, params = {}) => {
+    if (screen === 'ResetEmail' && params.email) {
+      setEmail(params.email);
+    }
+
+    if (screen === 'EmployeeProfile' || screen === 'EmployerProfile') {
+      setUserData(params.profile || params);
+    }
+
+    setCurrentScreen(screen);
+  };
 
   useEffect(() => {
     async function loadFonts() {
@@ -26,7 +39,6 @@ function App() {
         setFontsLoaded(true);
       }
     }
-
     loadFonts();
   }, []);
 
@@ -34,7 +46,7 @@ function App() {
     return
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size='large' />
-      </View>;
+      </View>
   }
 
   if (currentScreen === 'Splash') {
@@ -46,23 +58,16 @@ function App() {
   }
 
   if (currentScreen === 'ForgotPassword') {
-    return <ForgotPassView onNavigate={setCurrentScreen} />;
+    return <ForgotPassView onNavigate={handleNavigate} />;
   }
 
-{/* this is just for testin to see the ui for the forgot pass stuff thngz
-    remove the comment section, not the if logical condition, to see the ui for it thanks.
-  if (currentScreen === 'VerifyCode') {
-    return <VerifyCodeView onNavigate={setCurrentScreen} />;
+  if (currentScreen === 'ResetEmail') {
+    return <ResetEmailView onNavigate={handleNavigate} email={email} />;
   }
 
-  if (currentScreen === 'ConfirmPass') {
-    return <ConfirmPassResetView onNavigate={setCurrentScreen} />
+  if (currentScreen === 'EmployeeOnboarding') {
+    return <ProfileSetupView employeeData={userData} />;
   }
-
-  if (currentScreen === 'NewPass') {
-      return <NewPasswordView onNavigate={setCurrentScreen} />
-    }
-*/}
 
   return <SignupView onNavigate={setCurrentScreen} />;
 }
