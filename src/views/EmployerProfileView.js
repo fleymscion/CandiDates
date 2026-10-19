@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Template from './SafeAreaView';
+import Template from './Header';
 import TextStyle from './AppText';
 
 export default function EmployerProfileView({ navigation, employerData }) {
