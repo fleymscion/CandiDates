@@ -1,22 +1,47 @@
-import React from 'react';
-import { StyleSheet, View, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Template from './Header';
 import TextStyle from './AppText';
+import { EmployeeProfileController } from '../controllers/EmployeeProfileController';
 
 export default function EmployeeProfileView({ navigation, employeeData }) {
-  const employeeName = employeeData?.name || 'Employee Name';
-  const email = employeeData?.email || 'Email';
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadProfileData() {
+      try {
+        const data = await EmployeeProfileController.fetchProfile(employeeData?.id || employeeData?.uid);
+        setProfile(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProfileData();
+  }, [employeeData]);
+
+  if (loading) {
+    return (
+      <Template title="Profile" navigation={navigation}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#011F5B" />
+        </View>
+      </Template>
+    );
+  }
 
   return (
     <Template title="Profile" navigation={navigation}>
       <ScrollView style={styles.mainContent} showsVerticalScrollIndicator={false}>
-        {/* Employee Profile Header Card */}
+        {/* Profile Card Header */}
         <View style={styles.profileHeaderCard}>
           <View style={styles.avatar} />
           <View style={styles.profileInfo}>
-            <TextStyle style={styles.employeeName}>{employeeName}</TextStyle>
-            <TextStyle style={styles.employeeEmail}>{email}</TextStyle>
+            <TextStyle style={styles.employeeName}>{profile?.name || 'Employee Name'}</TextStyle>
+            <TextStyle style={styles.employeeEmail}>{profile?.email || 'Email'}</TextStyle>
 
             <TouchableOpacity
               style={styles.editProfileBtn}
@@ -27,11 +52,11 @@ export default function EmployeeProfileView({ navigation, employeeData }) {
           </View>
         </View>
 
-        {/* Employee Specific Menu Options */}
+        {/* Menu Options List */}
         <View style={styles.menuList}>
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => navigation?.navigate('HighlightedEvents')}
+            onPress={() => EmployeeProfileController.handleHighlightedEvents(navigation)}
           >
             <Ionicons name="heart-outline" size={20} color="#333" />
             <TextStyle style={styles.menuText}>Highlighted Events (Saved Dates)</TextStyle>
@@ -40,7 +65,7 @@ export default function EmployeeProfileView({ navigation, employeeData }) {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => navigation?.navigate('ResumesAndPortfolios')}
+            onPress={() => EmployeeProfileController.handleResumesAndPortfolios(navigation)}
           >
             <Ionicons name="download-outline" size={20} color="#333" />
             <TextStyle style={styles.menuText}>Resume & Portfolio Files</TextStyle>
@@ -49,7 +74,7 @@ export default function EmployeeProfileView({ navigation, employeeData }) {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => navigation?.navigate('JobCategories')}
+            onPress={() => EmployeeProfileController.handleJobCategories(navigation)}
           >
             <Ionicons name="globe-outline" size={20} color="#333" />
             <TextStyle style={styles.menuText}>Job Categories / Interests</TextStyle>
@@ -58,7 +83,7 @@ export default function EmployeeProfileView({ navigation, employeeData }) {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => navigation?.navigate('NotificationPreferences')}
+            onPress={() => EmployeeProfileController.handleNotificationPreferences(navigation)}
           >
             <Ionicons name="notifications-outline" size={20} color="#333" />
             <TextStyle style={styles.menuText}>Notification Preferences</TextStyle>
@@ -67,7 +92,7 @@ export default function EmployeeProfileView({ navigation, employeeData }) {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => navigation?.navigate('CalendarViewMode')}
+            onPress={() => EmployeeProfileController.handleCalendarViewMode(navigation)}
           >
             <Ionicons name="calendar-outline" size={20} color="#333" />
             <TextStyle style={styles.menuText}>Calendar View Mode</TextStyle>
@@ -78,7 +103,7 @@ export default function EmployeeProfileView({ navigation, employeeData }) {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => navigation?.navigate('LogoutModal')}
+            onPress={() => EmployeeProfileController.handleLogout(navigation)}
           >
             <Ionicons name="log-out-outline" size={20} color="#333" />
             <TextStyle style={styles.menuText}>Log Out</TextStyle>
