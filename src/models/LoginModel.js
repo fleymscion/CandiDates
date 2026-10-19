@@ -1,4 +1,4 @@
-import { Employee, Employer } from "./userModel";
+import { Employee, Employer } from "./UserModel";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
