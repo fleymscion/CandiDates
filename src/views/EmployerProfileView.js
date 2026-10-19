@@ -1,22 +1,46 @@
-import React from 'react';
-import { StyleSheet, View, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Template from './Header';
 import TextStyle from './AppText';
+import { EmployerProfileController } from '../controllers/EmployerProfileController';
 
 export default function EmployerProfileView({ navigation, employerData }) {
-  const username = employerData?.username || 'Employer Name';
-  const email = employerData?.email || 'Email';
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadProfileData() {
+      try {
+        const data = await EmployerProfileController.fetchProfile(employerData?.id || employerData?.uid);
+        setProfile(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProfileData();
+  }, [employerData]);
+
+  if (loading) {
+    return (
+      <Template title="Profile" navigation={navigation}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#011F5B" />
+        </View>
+      </Template>
+    );
+  }
 
   return (
     <Template title="Profile" navigation={navigation}>
       <ScrollView style={styles.mainContent} showsVerticalScrollIndicator={false}>
-        {/* Profile Card Header */}
         <View style={styles.profileHeaderCard}>
           <View style={styles.avatar} />
           <View style={styles.profileInfo}>
-            <TextStyle style={styles.employerName}>{username}</TextStyle>
-            <TextStyle style={styles.employerEmail}>{email}</TextStyle>
+            <TextStyle style={styles.employerName}>{profile?.name || 'Employer Name'}</TextStyle>
+            <TextStyle style={styles.employerEmail}>{profile?.email || 'Email'}</TextStyle>
 
             <TouchableOpacity
               style={styles.editProfileBtn}
@@ -27,11 +51,10 @@ export default function EmployerProfileView({ navigation, employerData }) {
           </View>
         </View>
 
-        {/* Menu Options List */}
         <View style={styles.menuList}>
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => navigation?.navigate('PostNewEvent')}
+            onPress={() => EmployerProfileController.handlePostEvent(navigation)}
           >
             <Ionicons name="heart-outline" size={20} color="#333" />
             <TextStyle style={styles.menuText}>Post a new event</TextStyle>
@@ -40,7 +63,7 @@ export default function EmployerProfileView({ navigation, employerData }) {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => navigation?.navigate('Dashboard')}
+            onPress={() => EmployerProfileController.handleDashboard(navigation)}
           >
             <Ionicons name="globe-outline" size={20} color="#333" />
             <TextStyle style={styles.menuText}>Dashboard</TextStyle>
@@ -49,7 +72,7 @@ export default function EmployerProfileView({ navigation, employerData }) {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => navigation?.navigate('NotificationPreferences')}
+            onPress={() => EmployerProfileController.handleNotificationPreferences(navigation)}
           >
             <Ionicons name="notifications-outline" size={20} color="#333" />
             <TextStyle style={styles.menuText}>Notification Preferences</TextStyle>
@@ -58,7 +81,7 @@ export default function EmployerProfileView({ navigation, employerData }) {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => navigation?.navigate('CalendarViewMode')}
+            onPress={() => EmployerProfileController.handleCalendarViewMode(navigation)}
           >
             <Ionicons name="calendar-outline" size={20} color="#333" />
             <TextStyle style={styles.menuText}>Calendar View Mode</TextStyle>
@@ -69,7 +92,7 @@ export default function EmployerProfileView({ navigation, employerData }) {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => console.log('Clear cache pressed')}
+            onPress={() => EmployerProfileController.handleClearCache()}
           >
             <Ionicons name="trash-outline" size={20} color="#333" />
             <TextStyle style={styles.menuText}>Clear Offline Calendar Cache</TextStyle>
@@ -78,7 +101,7 @@ export default function EmployerProfileView({ navigation, employerData }) {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => navigation?.navigate('LogoutModal')}
+            onPress={() => EmployerProfileController.handleLogout(navigation)}
           >
             <Ionicons name="log-out-outline" size={20} color="#333" />
             <TextStyle style={styles.menuText}>Log Out</TextStyle>
