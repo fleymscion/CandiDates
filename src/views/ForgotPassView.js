@@ -1,9 +1,43 @@
-import React from 'react';
-import { StyleSheet, View, TextInput, Pressable, SafeAreaView, Platform, StatusBar } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, TextInput, Pressable, SafeAreaView, Platform, StatusBar, Alert } from 'react-native';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../config/firebase';
 import { Ionicons } from '@expo/vector-icons';
 import AppText from './AppText';
 
 export default function ForgotPassView({ onNavigate }) {
+   const [email, setEmail] = useState('');
+   const [isSending, setIsSending] = useState(false);
+
+   const handleResetPassword = async () => {
+     const normalizedEmail = email.trim();
+
+     if (!normalizedEmail) {
+       Alert.alert('Email required', 'Please enter your email address.');
+       return;
+     }
+
+     try {
+       setIsSending(true);
+
+       await sendPasswordResetEmail(auth, normalizedEmail);
+
+       onNavigate('VerifyCode', { email: normalizedEmail });
+     } catch (error) {
+       let message = 'Unable to send the password reset email. Please try again.';
+
+       if (error.code === 'auth/invalid-email') {
+         message = 'Please enter a valid email address.';
+       } else if (error.code === 'auth/too-many-requests') {
+         message = 'Too many attempts. Please try again later.';
+       }
+
+       Alert.alert('Password Reset', message);
+     } finally {
+       setIsSending(false);
+     }
+   };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -36,11 +70,18 @@ export default function ForgotPassView({ onNavigate }) {
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
+          value={email}
+          onChangeText={setEmail}
+          editable={!isSending}
         />
 
-        <Pressable style={styles.Button} onPress={() => onNavigate('VerifyCode')}>
+        <Pressable
+        style={styles.Button}
+        onPress={handleResetPassword}
+        disabled={isSending}
+        >
           <AppText style={styles.ButtonText}>
-            Reset Password
+            {isSending ? 'Sending...' : 'Reset Password'}
           </AppText>
         </Pressable>
 

@@ -1,9 +1,10 @@
 import React from 'react';
-import { StyleSheet, View, TextInput, Pressable, SafeAreaView, Platform, StatusBar } from 'react-native';
+import { StyleSheet, View, Pressable, SafeAreaView, Platform, StatusBar } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AppText from './AppText';
 
-export default function VerifyCodeView({ onNavigate }) {
+export default function ResetEmailView({ onNavigate, email }) {
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -21,44 +22,35 @@ export default function VerifyCodeView({ onNavigate }) {
 
         <View style={styles.headingContainer}>
           <AppText style={styles.title}>
-            Check your email
+            Check Your Email
           </AppText>
 
           <AppText style={styles.description}>
             We sent a reset link to{' '}
             <AppText style={styles.email}>
-              example@gmail.com
+              {email}
             </AppText>
-            {'\n'}enter the 5-digit code mentioned in the email.
+            {'\n'}Open the link in your email to reset your password.
           </AppText>
         </View>
 
-        <View style={styles.codeContainer}>
-          {[0, 1, 2, 3, 4].map((item) => (
-            <TextInput
-              key={item}
-              style={styles.codeInput}
-              keyboardType="number-pad"
-              maxLength={1}
-              textAlign="center"
-            />
-          ))}
-        </View>
-
-        <Pressable style={styles.Button} onPress={() => onNavigate('ConfirmPass')}>
+        <Pressable
+          style={styles.Button}
+          onPress={() => onNavigate('Login')}
+        >
           <AppText style={styles.ButtonText}>
-            Verify Code
+            Back to Login
           </AppText>
         </Pressable>
 
         <View style={styles.resendContainer}>
           <AppText style={styles.resendText}>
-            Haven’t got the email yet?
+            Didn’t receive the email?
           </AppText>
 
-          <Pressable>
+          <Pressable onPress={() => onNavigate('ForgotPassword')}>
             <AppText style={styles.resendLink}>
-              Resend email
+              Try again
             </AppText>
           </Pressable>
         </View>
