@@ -7,7 +7,7 @@ import SplashScreen from './src/views/SplashScreen';
 import LoginView from './src/views/LoginView';
 import ForgotPassView from './src/views/ForgotPassView';
 import ResetEmailView from './src/views/ResetEmailSentView';
-import ProfileSetupView from './src/views/EmployeeOnboarding';
+import ProfileSetupView from './src/views/Employee Onboarding';
 import DrawerNavigator from './src/views/DrawerNavigator';
 
 function App() {
@@ -71,19 +71,19 @@ function App() {
     return <ResetEmailView onNavigate={handleNavigate} email={email} />;
   }
 
-  if (currentScreen === 'EmployeeOnboarding') {
+  if (currentScreen === 'Employee Onboarding') {
     return <ProfileSetupView employeeData={userData} />;
   }
 
   if (
-    currentScreen === 'MainApp' || 
-    currentScreen === 'EmployeeProfile' || 
+    currentScreen === 'MainApp' ||
+    currentScreen === 'EmployeeProfile' ||
     currentScreen === 'EmployerProfile'
   ) {
     return (
-      <DrawerNavigator 
-        userRole={userData?.role || (currentScreen === 'EmployerProfile' ? 'Employer' : 'Employee')} 
-        userData={userData} 
+      <DrawerNavigator
+        userRole={userData?.role || (currentScreen === 'EmployerProfile' ? 'Employer' : 'Employee')}
+        userData={userData}
       />
     );
   }
