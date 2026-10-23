@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, Pressable, Image, SafeAreaView, Platform, StatusBar, Alert, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { StyleSheet, View, Text, TextInput, Pressable, Image, ScrollView, SafeAreaView, Platform, StatusBar, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AppText from './AppText';
 import { signupUser } from '../controllers/SignupController';
@@ -7,228 +7,154 @@ import { signupUser } from '../controllers/SignupController';
 export default function SignupView({ onNavigate }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const [accountType, setAccountType] = useState('');
+  
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-
-  const isFormFilled =
-    accountType !== '' &&
-    username.trim() !== '' &&
-    email.trim() !== '' &&
-    password !== '' &&
-    confirmPassword !== '';
+  const [loading, setLoading] = useState(false);
 
   const handleSignup = async () => {
-    if (!accountType) {
-      Alert.alert(
-        'Account Type Required',
-        'Please select Employee or Employer.'
-      );
-      return;
-    }
-
     try {
-      const result = await signupUser(
-        username,
-        email,
-        password,
-        confirmPassword,
-        accountType
-      );
-
-      Alert.alert(
-        'Success',
-        `Your ${result.profile.role.toLowerCase()} account has been created!`,
-        [
-          {
-            text: 'OK',
-            onPress: () => onNavigate('Login'),
-          },
-        ]
-      );
+      setLoading(true);
+      const result = await signupUser(username, email, password, confirmPassword, accountType);
+      
+      if (accountType === 'employee') {
+        onNavigate('Employee Onboarding', { profile: result.profile });
+      } else {
+        onNavigate('EmployerProfile', { profile: result.profile });
+      }
     } catch (error) {
       Alert.alert('Signup Failed', error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.headerContainer}>
-        <Pressable
-          style={{ marginHorizontal: 50 }}
-          onPress={() => onNavigate('Login')}
-        >
+        <Pressable style={{ marginHorizontal: 50 }} onPress={() => onNavigate('Login')}>
           <Text style={styles.inactiveTab}>Log In</Text>
         </Pressable>
-
         <Pressable style={{ marginHorizontal: 50 }}>
           <Text style={styles.activeTab}>Sign Up</Text>
         </Pressable>
       </View>
+      <View style={styles.content}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
+          <Image
+            source={require('../../assets/images/LOGO_dark.png')}
+            style={styles.logo}
+          />
 
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <ScrollView
-          style={styles.content}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.container}>
-            <Image
-              source={require('../../assets/images/LOGO_dark.png')}
-              style={styles.logo}
-            />
+          <AppText style={styles.welcome}>Welcome!</AppText>
+          <AppText style={styles.subtitle}>Create your account</AppText>
 
-            <AppText style={styles.welcome}>
-              Welcome!
-            </AppText>
+          <AppText style={styles.label}>Join CandiDates as an</AppText>
 
-            <AppText style={styles.subtitle}>
-              Create your account
-            </AppText>
-
-            <AppText style={styles.label}>
-              Join CandiDates as an
-            </AppText>
-
-            <View style={styles.accountTypeContainer}>
-              <Pressable
-                style={[
-                  styles.accountTypeButton,
-                  accountType === 'employee' &&
-                    styles.selectedAccountType,
-                ]}
-                onPress={() => setAccountType('employee')}
-              >
-                <AppText
-                  style={
-                    accountType === 'employee'
-                      ? styles.selectedAccountText
-                      : styles.accountText
-                  }
-                >
-                  Employee
-                </AppText>
-              </Pressable>
-
-              <Pressable
-                style={[
-                  styles.accountTypeButton,
-                  accountType === 'employer' &&
-                    styles.selectedAccountType,
-                ]}
-                onPress={() => setAccountType('employer')}
-              >
-                <AppText
-                  style={
-                    accountType === 'employer'
-                      ? styles.selectedAccountText
-                      : styles.accountText
-                  }
-                >
-                  Employer
-                </AppText>
-              </Pressable>
-            </View>
-
-            <TextInput
-              style={styles.input}
-              placeholder="Username"
-              placeholderTextColor="#777777"
-              value={username}
-              onChangeText={setUsername}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              placeholderTextColor="#777777"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={styles.passwordInput}
-                placeholder="Password"
-                placeholderTextColor="#777777"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-
-              <Pressable
-                onPress={() => setShowPassword(!showPassword)}
-              >
-                <Ionicons
-                  name={
-                    showPassword
-                      ? 'eye-outline'
-                      : 'eye-off-outline'
-                  }
-                  size={21}
-                  color="#011F5B"
-                />
-              </Pressable>
-            </View>
-
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={styles.passwordInput}
-                placeholder="Confirm Password"
-                placeholderTextColor="#777777"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry={!showConfirmPassword}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-
-              <Pressable
-                onPress={() =>
-                  setShowConfirmPassword(!showConfirmPassword)
+          <View style={styles.accountTypeContainer}>
+            <Pressable
+              style={[
+                styles.accountTypeButton,
+                accountType === 'employee' && styles.selectedAccountType,
+              ]}
+              onPress={() => setAccountType('employee')}
+            >
+              <AppText
+                style={
+                  accountType === 'employee'
+                    ? styles.selectedAccountText
+                    : styles.accountText
                 }
               >
-                <Ionicons
-                  name={
-                    showConfirmPassword
-                      ? 'eye-outline'
-                      : 'eye-off-outline'
-                  }
-                  size={21}
-                  color="#011F5B"
-                />
-              </Pressable>
-            </View>
+                Employee
+              </AppText>
+            </Pressable>
 
             <Pressable
               style={[
-                styles.signupButton,
-                isFormFilled && styles.signupButtonActive,
+                styles.accountTypeButton,
+                accountType === 'employer' && styles.selectedAccountType,
               ]}
-              onPress={handleSignup}
+              onPress={() => setAccountType('employer')}
             >
-              <AppText style={styles.signupText}>
-                Sign Up
+              <AppText
+                style={
+                  accountType === 'employer'
+                    ? styles.selectedAccountText
+                    : styles.accountText
+                }
+              >
+                Employer
               </AppText>
             </Pressable>
           </View>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Username"
+            placeholderTextColor="#777777"
+            value={username}
+            onChangeText={setUsername}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#777777"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+          />
+
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Password"
+              placeholderTextColor="#777777"
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              autoCorrect={false}
+              value={password}
+              onChangeText={setPassword}
+            />
+            <Pressable onPress={() => setShowPassword(!showPassword)}>
+              <Ionicons
+                name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                size={21}
+                color="#011F5B"
+              />
+            </Pressable>
+          </View>
+
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Confirm Password"
+              placeholderTextColor="#777777"
+              secureTextEntry={!showConfirmPassword}
+              autoCapitalize="none"
+              autoCorrect={false}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+            />
+            <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+              <Ionicons
+                name={showConfirmPassword ? 'eye-outline' : 'eye-off-outline'}
+                size={21}
+                color="#011F5B"
+              />
+            </Pressable>
+          </View>
+
+          <Pressable style={styles.signupButton} onPress={handleSignup} disabled={loading}>
+            <AppText style={styles.signupText}>{loading ? 'Signing Up...' : 'Sign Up'}</AppText>
+          </Pressable>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 }
