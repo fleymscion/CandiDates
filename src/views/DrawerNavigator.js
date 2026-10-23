@@ -9,7 +9,6 @@ import { EventProvider } from './EventContext';
 const Drawer = createDrawerNavigator();
 
 export default function DrawerNavigator({ userRole = 'Employee', userData }) {
-  // Dynamic profile screen wrapper that switches between Employee and Employer views
   function ProfileScreenWrapper({ navigation }) {
     if (userRole === 'Employer') {
       return <EmployerProfileView navigation={navigation} employerData={userData} />;
@@ -32,7 +31,6 @@ export default function DrawerNavigator({ userRole = 'Employee', userData }) {
         <Drawer.Screen name="General Calendar" component={GeneralCalendar} />
         <Drawer.Screen name="Profile" component={ProfileScreenWrapper} />
 
-        {/* Employer-only drawer option as seen in wireframes */}
         {userRole === 'Employer' && (
           <Drawer.Screen name="Posted Events" component={GeneralCalendar} />
         )}
