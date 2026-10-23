@@ -7,7 +7,7 @@ import SplashScreen from './src/views/SplashScreen';
 import LoginView from './src/views/LoginView';
 import ForgotPassView from './src/views/ForgotPassView';
 import ResetEmailView from './src/views/ResetEmailSentView';
-import ProfileSetupView from './src/views/Employee Onboarding';
+import EmployeeBoardingController from './src/controllers/EmployeeBoardingController';
 import DrawerNavigator from './src/views/DrawerNavigator';
 
 function App() {
@@ -21,7 +21,7 @@ function App() {
       setEmail(params.email);
     }
 
-    if (screen === 'EmployeeProfile' || screen === 'EmployerProfile' || screen === 'MainApp') {
+    if (screen === 'EmployeeProfile' || screen === 'EmployerProfile' || screen === 'MainApp' || screen === 'Employee Onboarding') {
       if (params.profile) {
         setUserData(params.profile);
       } else if (params && Object.keys(params).length > 0) {
@@ -72,7 +72,13 @@ function App() {
   }
 
   if (currentScreen === 'Employee Onboarding') {
-    return <ProfileSetupView employeeData={userData} />;
+    return (
+      <EmployeeBoardingController
+        navigation={{ goBack: () => setCurrentScreen('Signup') }}
+        onSubmit={(profile) => setUserData({ ...userData, ...profile })}
+        onDone={() => setCurrentScreen('EmployeeProfile')}
+      />
+    );
   }
 
   if (
