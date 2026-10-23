@@ -4,7 +4,7 @@ import { auth, db } from '../config/firebase';
 import { Employee } from '../models/UserModel';
 
 export const EmployeeProfileController = {
-  // Fetch employee details from Firestore
+  // Fetch employee data
   fetchProfile: async (userId) => {
     try {
       const uid = userId || auth.currentUser?.uid;
@@ -17,7 +17,7 @@ export const EmployeeProfileController = {
         const data = docSnap.data();
         return new Employee(
           uid,
-          data.username || data.name || 'Employee Name',
+          data.username || data.name || 'Candidate Name',
           data.email || '',
           data.contactNumber || '',
           data.profileImageUrl || '',
@@ -36,23 +36,9 @@ export const EmployeeProfileController = {
     }
   },
 
-  // Update profile details in Firestore
-  updateProfile: async (userId, updateFields) => {
-    try {
-      const uid = userId || auth.currentUser?.uid;
-      if (!uid) throw new Error('No user authenticated');
-
-      const userRef = doc(db, 'users', uid);
-      await updateDoc(userRef, updateFields);
-    } catch (error) {
-      console.error('Error updating employee profile:', error);
-      throw error;
-    }
-  },
-
-  // Navigation handlers
+  // Menu action handlers
   handleHighlightedEvents: (navigation) => {
-    navigation?.navigate('HighlightedEvents');
+    navigation?.navigate('Highlight Calendar');
   },
 
   handleResumesAndPortfolios: (navigation) => {
@@ -71,20 +57,12 @@ export const EmployeeProfileController = {
     navigation?.navigate('CalendarViewMode');
   },
 
-  // Firebase Sign-out
   handleLogout: async (navigation) => {
     try {
       await signOut(auth);
-      if (navigation?.reset) {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Login' }],
-        });
-      } else {
-        navigation?.navigate('Login');
-      }
+      navigation?.reset ? navigation.reset({ index: 0, routes: [{ name: 'Login' }] }) : navigation?.navigate('Login');
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error('Logout error:', error);
     }
   },
 };
