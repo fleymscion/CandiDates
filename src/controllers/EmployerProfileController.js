@@ -4,7 +4,7 @@ import { auth, db } from '../config/firebase';
 import { Employer } from '../models/UserModel';
 
 export const EmployerProfileController = {
-  // Fetch employer details from Firestore
+  // Fetch employer data
   fetchProfile: async (userId) => {
     try {
       const uid = userId || auth.currentUser?.uid;
@@ -34,21 +34,7 @@ export const EmployerProfileController = {
     }
   },
 
-  // Update profile details in Firestore
-  updateProfile: async (userId, updateFields) => {
-    try {
-      const uid = userId || auth.currentUser?.uid;
-      if (!uid) throw new Error('No user authenticated');
-
-      const userRef = doc(db, 'users', uid);
-      await updateDoc(userRef, updateFields);
-    } catch (error) {
-      console.error('Error updating employer profile:', error);
-      throw error;
-    }
-  },
-
-  // Navigation handlers
+  // Menu action handlers
   handlePostEvent: (navigation) => {
     navigation?.navigate('PostNewEvent');
   },
@@ -69,20 +55,12 @@ export const EmployerProfileController = {
     console.log('Offline calendar cache cleared successfully');
   },
 
-  // Firebase Sign-out
   handleLogout: async (navigation) => {
     try {
       await signOut(auth);
-      if (navigation?.reset) {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Login' }],
-        });
-      } else {
-        navigation?.navigate('Login');
-      }
+      navigation?.reset ? navigation.reset({ index: 0, routes: [{ name: 'Login' }] }) : navigation?.navigate('Login');
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error('Logout error:', error);
     }
   },
 };
