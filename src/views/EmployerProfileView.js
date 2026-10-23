@@ -26,7 +26,7 @@ export default function EmployerProfileView({ navigation, employerData }) {
   if (loading) {
     return (
       <Template title="Profile" navigation={navigation}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#011F5B" />
         </View>
       </Template>
@@ -36,6 +36,7 @@ export default function EmployerProfileView({ navigation, employerData }) {
   return (
     <Template title="Profile" navigation={navigation}>
       <ScrollView style={styles.mainContent} showsVerticalScrollIndicator={false}>
+        {/* Employer Profile Header Card */}
         <View style={styles.profileHeaderCard}>
           <View style={styles.avatar} />
           <View style={styles.profileInfo}>
@@ -51,6 +52,7 @@ export default function EmployerProfileView({ navigation, employerData }) {
           </View>
         </View>
 
+        {/* Employer Specific Menu Options */}
         <View style={styles.menuList}>
           <TouchableOpacity
             style={styles.menuItem}
@@ -89,15 +91,6 @@ export default function EmployerProfileView({ navigation, employerData }) {
           </TouchableOpacity>
 
           <View style={styles.divider} />
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => EmployerProfileController.handleClearCache()}
-          >
-            <Ionicons name="trash-outline" size={20} color="#333" />
-            <TextStyle style={styles.menuText}>Clear Offline Calendar Cache</TextStyle>
-            <Ionicons name="chevron-forward" size={18} color="#888" />
-          </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.menuItem}
