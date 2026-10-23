@@ -8,6 +8,7 @@ import LoginView from './src/views/LoginView';
 import ForgotPassView from './src/views/ForgotPassView';
 import ResetEmailView from './src/views/ResetEmailSentView';
 import ProfileSetupView from './src/views/EmployeeOnboarding';
+import DrawerNavigator from './src/views/DrawerNavigator';
 
 function App() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
@@ -20,8 +21,12 @@ function App() {
       setEmail(params.email);
     }
 
-    if (screen === 'EmployeeProfile' || screen === 'EmployerProfile') {
-      setUserData(params.profile || params);
+    if (screen === 'EmployeeProfile' || screen === 'EmployerProfile' || screen === 'MainApp') {
+      if (params.profile) {
+        setUserData(params.profile);
+      } else if (params && Object.keys(params).length > 0) {
+        setUserData(params);
+      }
     }
 
     setCurrentScreen(screen);
@@ -43,10 +48,11 @@ function App() {
   }, []);
 
   if (!fontsLoaded) {
-    return
+    return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size='large' />
+        <ActivityIndicator size='large' color="#011F5B" />
       </View>
+    );
   }
 
   if (currentScreen === 'Splash') {
@@ -54,7 +60,7 @@ function App() {
   }
 
   if (currentScreen === 'Login') {
-    return <LoginView onNavigate={setCurrentScreen} />;
+    return <LoginView onNavigate={handleNavigate} />;
   }
 
   if (currentScreen === 'ForgotPassword') {
@@ -69,7 +75,20 @@ function App() {
     return <ProfileSetupView employeeData={userData} />;
   }
 
-  return <SignupView onNavigate={setCurrentScreen} />;
+  if (
+    currentScreen === 'MainApp' || 
+    currentScreen === 'EmployeeProfile' || 
+    currentScreen === 'EmployerProfile'
+  ) {
+    return (
+      <DrawerNavigator 
+        userRole={userData?.role || (currentScreen === 'EmployerProfile' ? 'Employer' : 'Employee')} 
+        userData={userData} 
+      />
+    );
+  }
+
+  return <SignupView onNavigate={handleNavigate} />;
 }
 
 registerRootComponent(App);
