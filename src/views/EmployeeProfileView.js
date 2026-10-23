@@ -26,7 +26,7 @@ export default function EmployeeProfileView({ navigation, employeeData }) {
   if (loading) {
     return (
       <Template title="Profile" navigation={navigation}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#011F5B" />
         </View>
       </Template>
@@ -36,12 +36,12 @@ export default function EmployeeProfileView({ navigation, employeeData }) {
   return (
     <Template title="Profile" navigation={navigation}>
       <ScrollView style={styles.mainContent} showsVerticalScrollIndicator={false}>
-        {/* Profile Card Header */}
+        {/* Candidate Profile Header Card */}
         <View style={styles.profileHeaderCard}>
           <View style={styles.avatar} />
           <View style={styles.profileInfo}>
-            <TextStyle style={styles.employeeName}>{profile?.name || 'Employee Name'}</TextStyle>
-            <TextStyle style={styles.employeeEmail}>{profile?.email || 'Email'}</TextStyle>
+            <TextStyle style={styles.candidateName}>{profile?.name || 'Candidate Name'}</TextStyle>
+            <TextStyle style={styles.candidateEmail}>{profile?.email || 'Email'}</TextStyle>
 
             <TouchableOpacity
               style={styles.editProfileBtn}
@@ -52,7 +52,7 @@ export default function EmployeeProfileView({ navigation, employeeData }) {
           </View>
         </View>
 
-        {/* Menu Options List */}
+        {/* Candidate Specific Menu Options */}
         <View style={styles.menuList}>
           <TouchableOpacity
             style={styles.menuItem}
@@ -68,7 +68,7 @@ export default function EmployeeProfileView({ navigation, employeeData }) {
             onPress={() => EmployeeProfileController.handleResumesAndPortfolios(navigation)}
           >
             <Ionicons name="download-outline" size={20} color="#333" />
-            <TextStyle style={styles.menuText}>Resume & Portfolio Files</TextStyle>
+            <TextStyle style={styles.menuText}>Resumes & Portfolio Files</TextStyle>
             <Ionicons name="chevron-forward" size={18} color="#888" />
           </TouchableOpacity>
 
