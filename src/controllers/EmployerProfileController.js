@@ -4,7 +4,7 @@ import { auth, db } from '../config/firebase';
 import { Employer } from '../models/UserModel';
 
 export const EmployerProfileController = {
-  // Fetch employer data
+  // Fetch employer profile data from Firestore[span_2](start_span)[span_2](end_span)
   fetchProfile: async (userId) => {
     try {
       const uid = userId || auth.currentUser?.uid;
@@ -34,7 +34,22 @@ export const EmployerProfileController = {
     }
   },
 
-  // Menu action handlers
+  // Save profile updates (Edit Profile)[span_3](start_span)[span_3](end_span)
+  updateProfile: async (userId, updatedFields) => {
+    try {
+      const uid = userId || auth.currentUser?.uid;
+      if (!uid) throw new Error('No user authenticated');
+
+      const userRef = doc(db, 'users', uid);
+      await updateDoc(userRef, updatedFields);
+      console.log('Employer profile updated successfully');
+    } catch (error) {
+      console.error('Error updating employer profile:', error);
+      throw error;
+    }
+  },
+
+  // Navigation handlers
   handlePostEvent: (navigation) => {
     navigation?.navigate('PostNewEvent');
   },
