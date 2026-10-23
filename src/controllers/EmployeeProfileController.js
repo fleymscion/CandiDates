@@ -4,7 +4,7 @@ import { auth, db } from '../config/firebase';
 import { Employee } from '../models/UserModel';
 
 export const EmployeeProfileController = {
-  // Fetch employee data
+  // Fetch employee profile data from Firestore[span_0](start_span)[span_0](end_span)
   fetchProfile: async (userId) => {
     try {
       const uid = userId || auth.currentUser?.uid;
@@ -17,7 +17,7 @@ export const EmployeeProfileController = {
         const data = docSnap.data();
         return new Employee(
           uid,
-          data.username || data.name || 'Candidate Name',
+          data.username || data.name || 'Employee Name',
           data.email || '',
           data.contactNumber || '',
           data.profileImageUrl || '',
@@ -36,7 +36,22 @@ export const EmployeeProfileController = {
     }
   },
 
-  // Menu action handlers
+  // Save profile updates (Edit Profile)[span_1](start_span)[span_1](end_span)
+  updateProfile: async (userId, updatedFields) => {
+    try {
+      const uid = userId || auth.currentUser?.uid;
+      if (!uid) throw new Error('No user authenticated');
+
+      const userRef = doc(db, 'users', uid);
+      await updateDoc(userRef, updatedFields);
+      console.log('Employee profile updated successfully');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
+  },
+
+  // Navigation handlers
   handleHighlightedEvents: (navigation) => {
     navigation?.navigate('Highlight Calendar');
   },
