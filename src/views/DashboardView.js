@@ -1,26 +1,57 @@
-import React from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { StyleSheet, View, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import Template from './Header';
 import TextStyle from './AppText';
+import InfoHighlightController from '../controllers/InfoHighlightController';
 
 export default function DashboardView({ navigation }) {
+  const [stats, setStats] = useState({ highlights: 0, views: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      async function fetchStats() {
+        setLoading(true);
+        const result = await InfoHighlightController.getDashboardStats();
+        if (active && result.success) {
+          setStats(result.data);
+        }
+        if (active) {
+          setLoading(false);
+        }
+      }
+      fetchStats();
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
+
   return (
     <Template title="Dashboard" navigation={navigation}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Metric Card: Highlights */}
-        <View style={styles.metricCard}>
-          <TextStyle style={styles.metricNumber}>5</TextStyle>
-          <TextStyle style={styles.metricLabel}>HIGHLIGHTS</TextStyle>
-          <Ionicons name="bookmark-outline" size={24} color="#011F5B" style={styles.metricIcon} />
-        </View>
+        {loading ? (
+          <ActivityIndicator size="large" color="#011F5B" style={{ marginTop: 20 }} />
+        ) : (
+          <>
+            {/* Metric Card: Highlights */}
+            <View style={styles.metricCard}>
+              <TextStyle style={styles.metricNumber}>{stats.highlights}</TextStyle>
+              <TextStyle style={styles.metricLabel}>HIGHLIGHTS</TextStyle>
+              <Ionicons name="bookmark-outline" size={24} color="#011F5B" style={styles.metricIcon} />
+            </View>
 
-        {/* Metric Card: Views */}
-        <View style={styles.metricCard}>
-          <TextStyle style={styles.metricNumber}>10</TextStyle>
-          <TextStyle style={styles.metricLabel}>VIEWS</TextStyle>
-          <Ionicons name="eye-outline" size={24} color="#011F5B" style={styles.metricIcon} />
-        </View>
+            {/* Metric Card: Views */}
+            <View style={styles.metricCard}>
+              <TextStyle style={styles.metricNumber}>{stats.views}</TextStyle>
+              <TextStyle style={styles.metricLabel}>VIEWS</TextStyle>
+              <Ionicons name="eye-outline" size={24} color="#011F5B" style={styles.metricIcon} />
+            </View>
+          </>
+        )}
 
         {/* Section Header */}
         <View style={styles.analyticsHeader}>
