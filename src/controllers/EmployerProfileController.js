@@ -1,18 +1,19 @@
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { collection, doc, getDoc, setDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { auth, db } from '../config/firebase';
 import { Employer } from '../models/UserModel';
+import { DateModel } from '../models/DateModel';
+import { PreferencesController, resolveUid } from './PreferencesController';
 
 export const EmployerProfileController = {
-  // Fetch employer data
+  // ---------- Profile ----------
   fetchProfile: async (userId) => {
     try {
       const uid = userId || auth.currentUser?.uid;
       if (!uid) return new Employer();
 
-      const docRef = doc(db, 'users', uid);
-      const docSnap = await getDoc(docRef);
-
+      const docSnap = await getDoc(doc(db, 'users', uid));
       if (docSnap.exists()) {
         const data = docSnap.data();
         return new Employer(
@@ -34,33 +35,74 @@ export const EmployerProfileController = {
     }
   },
 
-  // Menu action handlers
-  handlePostEvent: (navigation) => {
-    navigation?.navigate('PostNewEvent');
+  updateProfile: async (userId, data = {}) => {
+    const uid = resolveUid(userId);
+    if (!uid) throw new Error('You need to be signed in to edit your profile.');
+    const { name, contactNumber, location, tags, additionalContacts } = data;
+    await setDoc(
+      doc(db, 'users', uid),
+      { name, contactNumber, location, tags, additionalContacts },
+      { merge: true }
+    );
   },
 
-  handleDashboard: (navigation) => {
-    navigation?.navigate('Dashboard');
+  // ---------- Menu navigation ----------
+  handlePostEvent: (navigation) => navigation?.navigate('PostNewEvent'),
+  handleDashboard: (navigation) => navigation?.navigate('Dashboard'),
+  handleCalendarViewMode: (navigation) => navigation?.navigate('CalendarViewMode'),
+
+  // ---------- Notification preferences (modal on the profile screen) ----------
+  loadNotificationPrefs: (userId) => PreferencesController.loadNotificationPrefs(userId),
+  saveNotificationPrefs: (userId, prefs) => PreferencesController.saveNotificationPrefs(userId, prefs),
+
+  // ---------- Post a new event ----------
+  // buildEvent is synchronous so the UI can show the event immediately;
+  // postEvent then saves it to Firestore in the background.
+  buildEvent: (userId, { eventTitle = '', date = '', time = '', description = '' } = {}) => {
+    const id = doc(collection(db, 'events')).id; // generates an id locally, no network call
+    const event = new DateModel(
+      id,
+      '',
+      eventTitle.trim() || 'Untitled Event',
+      date.trim(),
+      time.trim(),
+      [],
+      description.trim(),
+      'normal'
+    );
+    return {
+      ...event.toFirebase(),
+      employerId: resolveUid(userId) || '',
+      createdAt: new Date().toISOString(),
+    };
   },
 
-  handleNotificationPreferences: (navigation) => {
-    navigation?.navigate('NotificationPreferences');
+  postEvent: async (event) => {
+    await setDoc(doc(db, 'events', event.id), event);
   },
 
-  handleCalendarViewMode: (navigation) => {
-    navigation?.navigate('CalendarViewMode');
+  // ---------- Offline calendar cache ----------
+  // Clears any cached calendar data kept under keys starting with "calendarCache:".
+  handleClearCalendarCache: async () => {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      const cacheKeys = keys.filter((k) => k.startsWith('calendarCache:'));
+      if (cacheKeys.length > 0) await AsyncStorage.multiRemove(cacheKeys);
+      return { success: true, cleared: cacheKeys.length };
+    } catch (error) {
+      console.error('Clear cache error:', error);
+      return { success: false, error: 'Could not clear the offline calendar cache.' };
+    }
   },
 
-  handleClearCache: () => {
-    console.log('Offline calendar cache cleared successfully');
-  },
-
-  handleLogout: async (navigation) => {
+  // ---------- Logout ----------
+  handleLogout: async () => {
     try {
       await signOut(auth);
-      navigation?.reset ? navigation.reset({ index: 0, routes: [{ name: 'Login' }] }) : navigation?.navigate('Login');
+      return { success: true };
     } catch (error) {
       console.error('Logout error:', error);
+      return { success: false, error: 'We could not log you out. Please try again.' };
     }
   },
 };
