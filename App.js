@@ -89,6 +89,7 @@ function App() {
         <DrawerNavigator 
           userRole={userData?.role || (currentScreen === 'EmployerProfile' ? 'Employer' : 'Employee')} 
           userData={userData} 
+          onNavigate={handleNavigate}
         />
       );
     }
