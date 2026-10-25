@@ -1,35 +1,41 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function EventCard({ item, onDelete, onUnhide }) {
+export default function EventCard({ item, onDelete, onUnhide, onToggleHighlight }) {
   const isHighlighted = item.classification === 'highlighted';
 
   return (
     <View style={[styles.card, isHighlighted && styles.highlightedCard]}>
-      {/* Show Upward Chevron if in Hidden screen, otherwise show '✕' hide button */}
-      {onUnhide ? (
-        <TouchableOpacity 
-          style={styles.actionButton} 
-          onPress={() => onUnhide(item.id)}
-        >
-          <Text style={styles.actionText}>▲</Text>
-        </TouchableOpacity>
-      ) : onDelete ? (
-        <TouchableOpacity 
-          style={styles.actionButton} 
-          onPress={() => onDelete(item.id)}
-        >
-          <Text style={styles.actionText}>✕</Text>
-        </TouchableOpacity>
-      ) : null}
+      
+      {/* Top Action Row */}
+      <View style={styles.actionRow}>
+        {onToggleHighlight ? (
+          <TouchableOpacity 
+            onPress={() => onToggleHighlight(item.id)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons 
+              name={isHighlighted ? "heart" : "heart-outline"} 
+              size={20} 
+              color="#002060" 
+            />
+          </TouchableOpacity>
+        ) : <View />}
 
-      {/* Image or Placeholder Gray Box */}
+        {onUnhide ? (
+          <TouchableOpacity onPress={() => onUnhide(item.id)}>
+            <Text style={styles.actionText}>▲</Text>
+          </TouchableOpacity>
+        ) : onDelete ? (
+          <TouchableOpacity onPress={() => onDelete(item.id)}>
+            <Text style={styles.actionText}>✕</Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
+
+      {/* Image / Placeholder */}
       {item.imageUrl ? (
-        <Image 
-          source={{ uri: item.imageUrl }} 
-          style={styles.image} 
-          resizeMode="cover" 
-        />
+        <Image source={{ uri: item.imageUrl }} style={styles.image} resizeMode="cover" />
       ) : (
         <View style={styles.placeholderImage} />
       )}
@@ -66,23 +72,17 @@ const styles = StyleSheet.create({
     padding: 10,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
     position: 'relative',
   },
   highlightedCard: {
     borderColor: '#002060',
     borderWidth: 2,
   },
-  actionButton: {
-    position: 'absolute',
-    top: 8,
-    right: 10,
-    zIndex: 10,
-    padding: 4,
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
   },
   actionText: {
     fontSize: 14,

@@ -1,11 +1,11 @@
-import React from 'react';
-import { Text, StyleSheet, FlatList } from 'react-native';
-import Template from './Header';
+import { FlatList, StyleSheet, Text } from 'react-native';
 import EventCard from './EventCard';
 import { useEvents } from './EventContext';
+import Template from './Header';
 
 export function GeneralCalendar({ navigation }) {
-  const { events, hideFromGeneral } = useEvents();
+  // 1. Extract toggleHighlight (or your context's highlight handler name)
+  const { events, hideFromGeneral, toggleHighlight } = useEvents();
   const visibleEvents = events.filter((item) => !item.isHidden);
 
   return (
@@ -17,7 +17,12 @@ export function GeneralCalendar({ navigation }) {
         contentContainerStyle={styles.listContent}
         columnWrapperStyle={styles.columnWrapper}
         renderItem={({ item }) => (
-          <EventCard item={item} onDelete={hideFromGeneral} />
+          // 2. Pass onToggleHighlight to EventCard
+          <EventCard 
+            item={item} 
+            onDelete={hideFromGeneral} 
+            onToggleHighlight={toggleHighlight}
+          />
         )}
         ListEmptyComponent={
           <Text style={styles.emptyText}>No events found.</Text>
@@ -28,7 +33,7 @@ export function GeneralCalendar({ navigation }) {
 }
 
 export function HighlightCalendar({ navigation }) {
-  const { events, removeFromHighlight } = useEvents();
+  const { events, removeFromHighlight, toggleHighlight } = useEvents();
   const highlightedEvents = events.filter(
     (item) => item.classification === 'highlighted' && !item.isHidden
   );
@@ -42,7 +47,11 @@ export function HighlightCalendar({ navigation }) {
         contentContainerStyle={styles.listContent}
         columnWrapperStyle={styles.columnWrapper}
         renderItem={({ item }) => (
-          <EventCard item={item} onDelete={removeFromHighlight} />
+          <EventCard 
+            item={item} 
+            onDelete={removeFromHighlight} 
+            onToggleHighlight={toggleHighlight}
+          />
         )}
         ListEmptyComponent={
           <Text style={styles.emptyText}>No highlighted events found.</Text>
@@ -53,7 +62,7 @@ export function HighlightCalendar({ navigation }) {
 }
 
 export function HiddenCalendar({ navigation }) {
-  const { events, unhideEvent } = useEvents();
+  const { events, unhideEvent, toggleHighlight } = useEvents();
   const hiddenEvents = events.filter((item) => item.isHidden);
 
   return (
@@ -65,7 +74,11 @@ export function HiddenCalendar({ navigation }) {
         contentContainerStyle={styles.listContent}
         columnWrapperStyle={styles.columnWrapper}
         renderItem={({ item }) => (
-          <EventCard item={item} onUnhide={unhideEvent} />
+          <EventCard 
+            item={item} 
+            onUnhide={unhideEvent} 
+            onToggleHighlight={toggleHighlight}
+          />
         )}
         ListEmptyComponent={
           <Text style={styles.emptyText}>No hidden dates found.</Text>

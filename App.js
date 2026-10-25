@@ -1,18 +1,22 @@
 import { registerRootComponent } from 'expo';
-import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
 import * as Font from 'expo-font';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+import DrawerNavigator from './src/views/DrawerNavigator';
+import ProfileSetupView from './src/views/EmployeeOnboarding';
+import ForgotPassView from './src/views/ForgotPassView';
+import LoginView from './src/views/LoginView';
+import ResetEmailView from './src/views/ResetEmailSentView';
 import SignupView from './src/views/SignupView';
 import SplashScreen from './src/views/SplashScreen';
-import LoginView from './src/views/LoginView';
-import ForgotPassView from './src/views/ForgotPassView';
-import ResetEmailView from './src/views/ResetEmailSentView';
-import ProfileSetupView from './src/views/EmployeeOnboarding';
-import DrawerNavigator from './src/views/DrawerNavigator';
 
 function App() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
-  const [currentScreen, setCurrentScreen] = useState("Splash");
+  
+  // Set to 'EmployeeProfile' or 'MainApp' to bypass splash/login during testing
+  const [currentScreen, setCurrentScreen] = useState('EmployeeProfile');
   const [email, setEmail] = useState('');
   const [userData, setUserData] = useState(null);
 
@@ -50,45 +54,53 @@ function App() {
   if (!fontsLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size='large' color="#011F5B" />
+        <ActivityIndicator size="large" color="#011F5B" />
       </View>
     );
   }
 
-  if (currentScreen === 'Splash') {
-    return <SplashScreen onFinish={() => setCurrentScreen('Signup')} />;
-  }
+  const renderScreen = () => {
+    if (currentScreen === 'Splash') {
+      return <SplashScreen onFinish={() => setCurrentScreen('Signup')} />;
+    }
 
-  if (currentScreen === 'Login') {
-    return <LoginView onNavigate={handleNavigate} />;
-  }
+    if (currentScreen === 'Login') {
+      return <LoginView onNavigate={handleNavigate} />;
+    }
 
-  if (currentScreen === 'ForgotPassword') {
-    return <ForgotPassView onNavigate={handleNavigate} />;
-  }
+    if (currentScreen === 'ForgotPassword') {
+      return <ForgotPassView onNavigate={handleNavigate} />;
+    }
 
-  if (currentScreen === 'ResetEmail') {
-    return <ResetEmailView onNavigate={handleNavigate} email={email} />;
-  }
+    if (currentScreen === 'ResetEmail') {
+      return <ResetEmailView onNavigate={handleNavigate} email={email} />;
+    }
 
-  if (currentScreen === 'EmployeeOnboarding') {
-    return <ProfileSetupView employeeData={userData} />;
-  }
+    if (currentScreen === 'EmployeeOnboarding') {
+      return <ProfileSetupView employeeData={userData} onNavigate={handleNavigate} />;
+    }
 
-  if (
-    currentScreen === 'MainApp' || 
-    currentScreen === 'EmployeeProfile' || 
-    currentScreen === 'EmployerProfile'
-  ) {
-    return (
-      <DrawerNavigator 
-        userRole={userData?.role || (currentScreen === 'EmployerProfile' ? 'Employer' : 'Employee')} 
-        userData={userData} 
-      />
-    );
-  }
+    if (
+      currentScreen === 'MainApp' || 
+      currentScreen === 'EmployeeProfile' || 
+      currentScreen === 'EmployerProfile'
+    ) {
+      return (
+        <DrawerNavigator 
+          userRole={userData?.role || (currentScreen === 'EmployerProfile' ? 'Employer' : 'Employee')} 
+          userData={userData} 
+        />
+      );
+    }
 
-  return <SignupView onNavigate={handleNavigate} />;
+    return <SignupView onNavigate={handleNavigate} />;
+  };
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      {renderScreen()}
+    </GestureHandlerRootView>
+  );
 }
 
 registerRootComponent(App);
