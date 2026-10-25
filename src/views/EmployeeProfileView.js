@@ -76,7 +76,7 @@ export default function EmployeeProfileView({ navigation, employeeData, onNaviga
           </View>
         </View>
 
-        {/* Menu Options List */}
+        {/* Employee Specific Menu Options */}
         <View style={styles.menuList}>
           <TouchableOpacity
             style={styles.menuItem}
