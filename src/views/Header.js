@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function Header({ title, children, navigation }) {
+// showBack = true replaces the menu icon with a back arrow (for screens opened from the Profile menu).
+export default function Header({ title, children, navigation, showBack = false }) {
   const handleOpenDrawer = () => {
     if (navigation?.dispatch) {
       navigation.dispatch(DrawerActions.openDrawer());
@@ -11,16 +12,24 @@ export default function Header({ title, children, navigation }) {
     }
   };
 
+  const handleBack = () => {
+    if (navigation?.canGoBack?.()) {
+      navigation.goBack();
+    } else {
+      navigation?.navigate?.('Profile');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.headerBar}>
-        <TouchableOpacity 
-          onPress={handleOpenDrawer} 
+        <TouchableOpacity
+          onPress={showBack ? handleBack : handleOpenDrawer}
           style={styles.iconButton}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           activeOpacity={0.7}
         >
-          <Ionicons name="menu" size={28} color="#FFFFFF" />
+          <Ionicons name={showBack ? 'arrow-back' : 'menu'} size={28} color="#FFFFFF" />
         </TouchableOpacity>
 
         <Text style={styles.title}>{title}</Text>

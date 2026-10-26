@@ -31,7 +31,7 @@ export default function DashboardView({ navigation }) {
   );
 
   return (
-    <Template title="Dashboard" navigation={navigation}>
+    <Template title="Dashboard" navigation={navigation} showBack>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {loading ? (
           <ActivityIndicator size="large" color="#011F5B" style={{ marginTop: 20 }} />

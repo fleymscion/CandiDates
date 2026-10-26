@@ -92,6 +92,7 @@ export default function EmployerProfileView({ navigation, employerData, onNaviga
         <ProfileHeader
           name={profile?.name || 'Employer Name'}
           email={profile?.email}
+          showPersonIcon
           onEdit={() => navigation?.navigate('EditProfileFrame')}
         />
 
@@ -116,8 +117,8 @@ export default function EmployerProfileView({ navigation, employerData, onNaviga
             label="Calendar View Mode"
             onPress={() => EmployerProfileController.handleCalendarViewMode(navigation)}
           />
-          <MenuItem icon="trash-outline" label="Clear Offline Calendar Cache" onPress={handleClearCache} />
           <MenuDivider />
+          <MenuItem icon="trash-outline" label="Clear Offline Calendar Cache" onPress={handleClearCache} />
           <MenuItem icon="log-out-outline" label="Log Out" onPress={() => setLogoutModalVisible(true)} />
         </View>
       </ScrollView>
