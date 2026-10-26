@@ -1,26 +1,24 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function EventCard({ item, onDelete, onUnhide, onToggleHighlight }) {
+// fullWidth = true is used by the "List" calendar view mode (one card per row).
+export default function EventCard({ item, onDelete, onUnhide, onToggleHighlight, fullWidth = false }) {
   const isHighlighted = item.classification === 'highlighted';
 
   return (
-    <View style={[styles.card, isHighlighted && styles.highlightedCard]}>
-      
+    <View style={[styles.card, fullWidth && styles.cardFull, isHighlighted && styles.highlightedCard]}>
       {/* Top Action Row */}
       <View style={styles.actionRow}>
         {onToggleHighlight ? (
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => onToggleHighlight(item.id)}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons 
-              name={isHighlighted ? "heart" : "heart-outline"} 
-              size={20} 
-              color="#002060" 
-            />
+            <Ionicons name={isHighlighted ? 'heart' : 'heart-outline'} size={20} color="#002060" />
           </TouchableOpacity>
-        ) : <View />}
+        ) : (
+          <View />
+        )}
 
         {onUnhide ? (
           <TouchableOpacity onPress={() => onUnhide(item.id)}>
@@ -74,46 +72,13 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
     position: 'relative',
   },
-  highlightedCard: {
-    borderColor: '#002060',
-    borderWidth: 2,
-  },
-  actionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  actionText: {
-    fontSize: 14,
-    color: '#002060',
-    fontWeight: 'bold',
-  },
-  placeholderImage: {
-    width: '100%',
-    aspectRatio: 16 / 9,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  image: {
-    width: '100%',
-    aspectRatio: 16 / 9,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#000000',
-    marginBottom: 4,
-  },
-  detailText: {
-    fontSize: 12,
-    color: '#333333',
-    marginTop: 2,
-  },
-  boldText: {
-    fontWeight: 'bold',
-  },
+  cardFull: { flex: 1, maxWidth: '100%' },
+  highlightedCard: { borderColor: '#002060', borderWidth: 2 },
+  actionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  actionText: { fontSize: 14, color: '#002060', fontWeight: 'bold' },
+  placeholderImage: { width: '100%', aspectRatio: 16 / 9, backgroundColor: '#E0E0E0', borderRadius: 8, marginBottom: 8 },
+  image: { width: '100%', aspectRatio: 16 / 9, borderRadius: 8, marginBottom: 8 },
+  title: { fontSize: 14, fontWeight: 'bold', color: '#000000', marginBottom: 4 },
+  detailText: { fontSize: 12, color: '#333333', marginTop: 2 },
+  boldText: { fontWeight: 'bold' },
 });

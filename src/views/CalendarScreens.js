@@ -1,32 +1,42 @@
 import { FlatList, StyleSheet, Text } from 'react-native';
 import EventCard from './EventCard';
 import { useEvents } from './EventContext';
+import { usePreferences } from './PreferencesContext';
 import Template from './Header';
 
+// Renders events as a 2-column grid or a 1-column list depending on the
+// "Calendar View Mode" preference.
+function EventList({ data, emptyText, cardProps }) {
+  const { calendarViewMode } = usePreferences();
+  const isList = calendarViewMode === 'list';
+  const numColumns = isList ? 1 : 2;
+
+  return (
+    <FlatList
+      // numColumns can't change on a live FlatList, so a new key forces a fresh one
+      key={`cols-${numColumns}`}
+      data={data}
+      keyExtractor={(item) => item.id}
+      numColumns={numColumns}
+      contentContainerStyle={styles.listContent}
+      // columnWrapperStyle is only allowed when numColumns > 1
+      columnWrapperStyle={isList ? undefined : styles.columnWrapper}
+      renderItem={({ item }) => <EventCard item={item} fullWidth={isList} {...cardProps} />}
+      ListEmptyComponent={<Text style={styles.emptyText}>{emptyText}</Text>}
+    />
+  );
+}
+
 export function GeneralCalendar({ navigation }) {
-  // 1. Extract toggleHighlight (or your context's highlight handler name)
   const { events, hideFromGeneral, toggleHighlight } = useEvents();
   const visibleEvents = events.filter((item) => !item.isHidden);
 
   return (
     <Template title="General Calendar" navigation={navigation}>
-      <FlatList
+      <EventList
         data={visibleEvents}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.listContent}
-        columnWrapperStyle={styles.columnWrapper}
-        renderItem={({ item }) => (
-          // 2. Pass onToggleHighlight to EventCard
-          <EventCard 
-            item={item} 
-            onDelete={hideFromGeneral} 
-            onToggleHighlight={toggleHighlight}
-          />
-        )}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No events found.</Text>
-        }
+        emptyText="No events found."
+        cardProps={{ onDelete: hideFromGeneral, onToggleHighlight: toggleHighlight }}
       />
     </Template>
   );
@@ -34,28 +44,14 @@ export function GeneralCalendar({ navigation }) {
 
 export function HighlightCalendar({ navigation }) {
   const { events, removeFromHighlight, toggleHighlight } = useEvents();
-  const highlightedEvents = events.filter(
-    (item) => item.classification === 'highlighted' && !item.isHidden
-  );
+  const highlightedEvents = events.filter((item) => item.classification === 'highlighted' && !item.isHidden);
 
   return (
     <Template title="Highlight Calendar" navigation={navigation}>
-      <FlatList
+      <EventList
         data={highlightedEvents}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.listContent}
-        columnWrapperStyle={styles.columnWrapper}
-        renderItem={({ item }) => (
-          <EventCard 
-            item={item} 
-            onDelete={removeFromHighlight} 
-            onToggleHighlight={toggleHighlight}
-          />
-        )}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No highlighted events found.</Text>
-        }
+        emptyText="No highlighted events found."
+        cardProps={{ onDelete: removeFromHighlight, onToggleHighlight: toggleHighlight }}
       />
     </Template>
   );
@@ -67,22 +63,10 @@ export function HiddenCalendar({ navigation }) {
 
   return (
     <Template title="Hidden Dates" navigation={navigation}>
-      <FlatList
+      <EventList
         data={hiddenEvents}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.listContent}
-        columnWrapperStyle={styles.columnWrapper}
-        renderItem={({ item }) => (
-          <EventCard 
-            item={item} 
-            onUnhide={unhideEvent} 
-            onToggleHighlight={toggleHighlight}
-          />
-        )}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No hidden dates found.</Text>
-        }
+        emptyText="No hidden dates found."
+        cardProps={{ onUnhide: unhideEvent, onToggleHighlight: toggleHighlight }}
       />
     </Template>
   );
@@ -91,10 +75,5 @@ export function HiddenCalendar({ navigation }) {
 const styles = StyleSheet.create({
   listContent: { padding: 8 },
   columnWrapper: { justifyContent: 'flex-start' },
-  emptyText: {
-    fontSize: 16,
-    color: '#666666',
-    textAlign: 'center',
-    marginTop: 40,
-  },
+  emptyText: { fontSize: 16, color: '#666666', textAlign: 'center', marginTop: 40 },
 });

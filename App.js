@@ -14,8 +14,8 @@ import SplashScreen from './src/views/SplashScreen';
 
 function App() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
-  
-  // Set to 'EmployeeProfile' or 'MainApp' to bypass splash/login during testing
+
+  // Start on Login so you sign in for real (saving needs a signed-in user)
   const [currentScreen, setCurrentScreen] = useState('EmployeeProfile');
   const [email, setEmail] = useState('');
   const [userData, setUserData] = useState(null);
@@ -81,14 +81,15 @@ function App() {
     }
 
     if (
-      currentScreen === 'MainApp' || 
-      currentScreen === 'EmployeeProfile' || 
+      currentScreen === 'MainApp' ||
+      currentScreen === 'EmployeeProfile' ||
       currentScreen === 'EmployerProfile'
     ) {
       return (
-        <DrawerNavigator 
-          userRole={userData?.role || (currentScreen === 'EmployerProfile' ? 'Employer' : 'Employee')} 
-          userData={userData} 
+        <DrawerNavigator
+          userRole={userData?.role || (currentScreen === 'EmployerProfile' ? 'Employer' : 'Employee')}
+          userData={userData}
+          onNavigate={handleNavigate}
         />
       );
     }
