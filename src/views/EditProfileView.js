@@ -1,159 +1,163 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, TextInput, Pressable, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Template from './Header';
 import TextStyle from './AppText';
 
-export default function EditProfileView({ navigation, userData, onSave }) {
-  const [username, setUsername] = useState(userData?.name || userData?.username || '');
-  const [email, setEmail] = useState(userData?.email || '');
-  const [contactNumber, setContactNumber] = useState(userData?.contactNumber || '');
-  const [location, setLocation] = useState(userData?.location || '');
-  const [tags, setTags] = useState('');
-  const [additionalContacts, setAdditionalContacts] = useState('');
+const toForm = (data) => ({
+  username: data?.name || data?.username || '',
+  email: data?.email || '',
+  contactNumber: data?.contactNumber || '',
+  location: data?.location || '',
+  tags: data?.tags || '',
+  additionalContacts: data?.additionalContacts || '',
+});
 
-  const handleSave = () => {
-    const updatedData = {
-      name: username,
-      email,
-      contactNumber,
-      location,
-      tags,
-      additionalContacts,
-    };
-    onSave?.(updatedData);
-    navigation?.goBack();
+const FIELDS = [
+  { key: 'username', label: 'Username' },
+  { key: 'email', label: 'Email', readOnly: true }, // email is tied to the login account, so it can't be changed here
+  { key: 'contactNumber', label: 'Phone Number', keyboardType: 'phone-pad' },
+  { key: 'location', label: 'Location' },
+  { key: 'tags', label: 'Personal/Professional Tags' },
+  { key: 'additionalContacts', label: 'Additional Contacts' },
+];
+
+// userRole: 'Employee' = plain grey avatar, 'Employer' = person silhouette (as in the designs)
+export default function EditProfileView({ navigation, userData, userRole = 'Employee', onSave }) {
+  const [form, setForm] = useState(toForm(userData));
+  const [saving, setSaving] = useState(false);
+
+  // Refill the form when fresh profile data arrives.
+  useEffect(() => {
+    setForm(toForm(userData));
+  }, [userData]);
+
+  const setField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  const handleSave = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      await onSave?.({
+        name: form.username.trim(),
+        contactNumber: form.contactNumber.trim(),
+        location: form.location.trim(),
+        tags: form.tags.trim(),
+        additionalContacts: form.additionalContacts.trim(),
+      });
+      navigation?.goBack();
+    } catch (e) {
+      Alert.alert('Could not save', 'Your changes were not saved. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <Template title="Edit Profile" navigation={navigation}>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Profile Avatar with Edit Badge */}
-        <View style={styles.avatarContainer}>
-          <View style={styles.avatarCircle}>
-            <Ionicons name="person" size={80} color="#B5B5B5" />
+      <View style={styles.body}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => navigation?.goBack()}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <Ionicons name="arrow-back" size={14} color="#011F5B" />
+          </TouchableOpacity>
+
+          {/* Avatar with blue edit badge */}
+          <View style={styles.avatarWrap}>
+            <View style={styles.avatar}>
+              {userRole === 'Employer' && <Ionicons name="person" size={70} color="#8A8A8A" style={styles.avatarIcon} />}
+            </View>
+            <View style={styles.editBadge}>
+              <Ionicons name="pencil" size={13} color="#FFFFFF" />
+            </View>
           </View>
-          <View style={styles.cameraBadge}>
-            <Ionicons name="pencil" size={16} color="#FFFFFF" />
-          </View>
-        </View>
 
-        {/* Input Fields */}
-        <TextStyle style={styles.label}>Username</TextStyle>
-        <TextInput
-          style={styles.input}
-          placeholder="Username"
-          placeholderTextColor="#777777"
-          value={username}
-          onChangeText={setUsername}
-        />
+          <TextStyle style={styles.title}>Edit Profile</TextStyle>
 
-        <TextStyle style={styles.label}>Email</TextStyle>
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#777777"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-        />
+          {FIELDS.map((f) => (
+            <View key={f.key}>
+              <TextStyle style={styles.label}>{f.label}</TextStyle>
+              <TextInput
+                style={[styles.input, f.readOnly && styles.inputReadOnly]}
+                value={form[f.key]}
+                onChangeText={(v) => setField(f.key, v)}
+                editable={!f.readOnly}
+                keyboardType={f.keyboardType}
+                autoCapitalize={f.key === 'email' ? 'none' : 'sentences'}
+                placeholder={f.label}
+                placeholderTextColor="#9A9A9A"
+              />
+            </View>
+          ))}
 
-        <TextStyle style={styles.label}>Phone Number</TextStyle>
-        <TextInput
-          style={styles.input}
-          placeholder="Phone Number"
-          placeholderTextColor="#777777"
-          keyboardType="phone-pad"
-          value={contactNumber}
-          onChangeText={setContactNumber}
-        />
-
-        <TextStyle style={styles.label}>Location</TextStyle>
-        <TextInput
-          style={styles.input}
-          placeholder="Location"
-          placeholderTextColor="#777777"
-          value={location}
-          onChangeText={setLocation}
-        />
-
-        <TextStyle style={styles.label}>Personal / Professional Tags</TextStyle>
-        <TextInput
-          style={styles.input}
-          placeholder="Tags"
-          placeholderTextColor="#777777"
-          value={tags}
-          onChangeText={setTags}
-        />
-
-        <TextStyle style={styles.label}>Additional Contacts</TextStyle>
-        <TextInput
-          style={styles.input}
-          placeholder="Additional Contacts"
-          placeholderTextColor="#777777"
-          value={additionalContacts}
-          onChangeText={setAdditionalContacts}
-        />
-
-        {/* Save Changes Button */}
-        <Pressable style={styles.saveButton} onPress={handleSave}>
-          <TextStyle style={styles.saveButtonText}>Save Changes / Update Profile</TextStyle>
-        </Pressable>
-      </ScrollView>
+          <Pressable style={[styles.saveBtn, saving && { opacity: 0.6 }]} onPress={handleSave} disabled={saving}>
+            <TextStyle style={styles.saveBtnText}>{saving ? 'Saving...' : 'Save Changes / Update Profile'}</TextStyle>
+          </Pressable>
+        </ScrollView>
+      </View>
     </Template>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { flex: 1 },
-  avatarContainer: {
-    alignSelf: 'center',
-    marginVertical: 10,
-    position: 'relative',
-  },
-  avatarCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+  body: { flex: 1, backgroundColor: '#011F5B' },
+  content: { paddingHorizontal: 28, paddingTop: 16, paddingBottom: 40 },
+  backBtn: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#B5B5B5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarWrap: { alignSelf: 'center', marginTop: 4, marginBottom: 6 },
+  avatar: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: '#D9D9D9',
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
   },
-  cameraBadge: {
+  avatarIcon: { marginTop: 16 },
+  editBadge: {
     position: 'absolute',
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#011F5B',
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    right: 2,
+    bottom: 4,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#0047CC',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
   },
-  label: { fontSize: 13, fontWeight: '600', marginBottom: 4, color: '#333333' },
+  title: { color: '#FFFFFF', fontSize: 22, fontWeight: 'bold', marginBottom: 14 },
+  label: { color: '#FFFFFF', fontSize: 12, marginBottom: 4 },
   input: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: '#B5B5B5',
-    borderRadius: 10,
-    paddingHorizontal: 12,
+    backgroundColor: '#F4F6FB',
+    borderRadius: 6,
+    paddingHorizontal: 10,
     paddingVertical: 8,
     fontSize: 14,
+    color: '#111111',
     marginBottom: 14,
   },
-  saveButton: {
-    backgroundColor: '#284B91',
-    height: 46,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+  inputReadOnly: { backgroundColor: '#C9CFDD', color: '#444444' },
+  saveBtn: {
+    alignSelf: 'center',
+    backgroundColor: '#0047CC',
+    borderRadius: 8,
+    paddingHorizontal: 22,
+    paddingVertical: 11,
     marginTop: 10,
-    marginBottom: 30,
   },
-  saveButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
+  saveBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: 'bold' },
 });
