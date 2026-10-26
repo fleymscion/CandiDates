@@ -1,56 +1,61 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, TextInput, Pressable, Image, ScrollView, SafeAreaView, Platform, StatusBar } from 'react-native';
+import React from 'react';
+import {
+  StyleSheet,
+  View,
+  TextInput,
+  Pressable,
+  Image,
+  ScrollView,
+  SafeAreaView,
+  Platform,
+  StatusBar,
+  KeyboardAvoidingView,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AppText from './AppText';
 
-export default function ProfileSetupView({ navigation, onSubmit }) {
-  const [step, setStep] = useState(1);
-  const [cvFile, setCvFile] = useState(null);
-  const [photoUri, setPhotoUri] = useState(null);
-  const [experiences, setExperiences] = useState([{ title: '', start: '', end: '' }]);
-  const [educations, setEducations] = useState([{ school: '', program: '', start: '', end: '' }]);
-  const [skillInput, setSkillInput] = useState('');
-  const [skills, setSkills] = useState([]);
+const TITLES = [
+  'Build Your Profile',
+  'Add a profile photo',
+  'Work Experience',
+  'Your Education',
+  'Your Skills',
+  'Review Your Profile',
+];
 
-  const titles = [
-    'Build Your Profile',
-    'Add a profile photo',
-    'Work Experience',
-    'Your Education',
-    'Your Skills',
-    'Review Your Profile',
-  ];
+const SUBTITLES = [
+  'Upload your resume to get started',
+  'A clear photo helps employers recognize you.',
+  '',
+  '',
+  "Add skills that show what you're good at.",
+  "Here's what employers will see.",
+];
 
-  const subtitles = [
-    'Upload your resume to get started',
-    'A clear photo helps employers recognize you.',
-    '',
-    '',
-    "Add skills that show what you're good at.",
-    "Here's what employers will see.",
-  ];
-
-  const next = () => setStep(step + 1);
-
-  const back = () => {
-    if (step === 1) {
-      if (navigation) navigation.goBack();
-    } else {
-      setStep(step - 1);
-    }
-  };
-
-  const pickDocument = async () => {};
-
-  const pickImage = async () => {};
-
-  const addSkill = () => {
-    const skill = skillInput.trim();
-    if (skill !== '' && !skills.includes(skill)) {
-      setSkills([...skills, skill]);
-    }
-    setSkillInput('');
-  };
+export default function ProfileSetupView({
+  step,
+  cvFile,
+  photoUri,
+  experiences,
+  educations,
+  skillInput,
+  skills,
+  submitting,
+  next,
+  back,
+  pickDocument,
+  pickImage,
+  setSkillInput,
+  addSkill,
+  removeSkill,
+  updateExperience,
+  addExperience,
+  updateEducation,
+  addEducation,
+  submit,
+}) {
+  const filledExperiences = experiences.filter((e) => e.title.trim() !== '');
+  const filledEducations = educations.filter((e) => e.school.trim() !== '');
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -59,22 +64,19 @@ export default function ProfileSetupView({ navigation, onSubmit }) {
           <Ionicons name="arrow-back-circle" size={26} color="#FFFFFF" />
         </Pressable>
 
-        <AppText style={styles.stepText}>
-          Step {step} of 6
-        </AppText>
+        <AppText style={styles.stepText}>Step {step} of 6</AppText>
 
-        <AppText style={styles.headerTitle}>
-          {titles[step - 1]}
-        </AppText>
+        <AppText style={styles.headerTitle}>{TITLES[step - 1]}</AppText>
 
-        {subtitles[step - 1] !== '' && (
-          <AppText style={styles.headerSubtitle}>
-            {subtitles[step - 1]}
-          </AppText>
+        {SUBTITLES[step - 1] !== '' && (
+          <AppText style={styles.headerSubtitle}>{SUBTITLES[step - 1]}</AppText>
         )}
       </View>
 
-      <View style={styles.content}>
+      <KeyboardAvoidingView
+        style={styles.content}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
         <ScrollView
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -92,9 +94,16 @@ export default function ProfileSetupView({ navigation, onSubmit }) {
                 <AppText style={styles.uploadText}>
                   {cvFile ? cvFile.name : 'Click to browse files'}
                 </AppText>
+                {cvFile && (
+                  <AppText style={styles.uploadSubtext}>Tap to replace</AppText>
+                )}
               </Pressable>
 
-              <Pressable style={styles.mainButton} onPress={next}>
+              <Pressable
+                style={[styles.mainButton, !cvFile && styles.disabledButton]}
+                onPress={next}
+                disabled={!cvFile}
+              >
                 <AppText style={styles.buttonText}>Submit</AppText>
               </Pressable>
 
@@ -120,9 +129,7 @@ export default function ProfileSetupView({ navigation, onSubmit }) {
                 </Pressable>
               </View>
 
-              <AppText style={styles.photoHint}>
-                JPG or PNG, max 5MB
-              </AppText>
+              <AppText style={styles.photoHint}>JPG or PNG, max 5MB</AppText>
 
               <Pressable style={styles.mainButton} onPress={next}>
                 <AppText style={styles.buttonText}>Next</AppText>
@@ -145,11 +152,7 @@ export default function ProfileSetupView({ navigation, onSubmit }) {
                     placeholder="Type here..."
                     placeholderTextColor="#777777"
                     value={exp.title}
-                    onChangeText={(text) =>
-                      setExperiences(experiences.map((item, i) =>
-                        i === index ? { ...item, title: text } : item
-                      ))
-                    }
+                    onChangeText={(text) => updateExperience(index, 'title', text)}
                   />
 
                   <AppText style={styles.label}>Duration</AppText>
@@ -160,11 +163,7 @@ export default function ProfileSetupView({ navigation, onSubmit }) {
                       placeholder="Start Date"
                       placeholderTextColor="#777777"
                       value={exp.start}
-                      onChangeText={(text) =>
-                        setExperiences(experiences.map((item, i) =>
-                          i === index ? { ...item, start: text } : item
-                        ))
-                      }
+                      onChangeText={(text) => updateExperience(index, 'start', text)}
                     />
 
                     <TextInput
@@ -172,22 +171,13 @@ export default function ProfileSetupView({ navigation, onSubmit }) {
                       placeholder="End Date"
                       placeholderTextColor="#777777"
                       value={exp.end}
-                      onChangeText={(text) =>
-                        setExperiences(experiences.map((item, i) =>
-                          i === index ? { ...item, end: text } : item
-                        ))
-                      }
+                      onChangeText={(text) => updateExperience(index, 'end', text)}
                     />
                   </View>
                 </View>
               ))}
 
-              <Pressable
-                style={styles.addButton}
-                onPress={() =>
-                  setExperiences([...experiences, { title: '', start: '', end: '' }])
-                }
-              >
+              <Pressable style={styles.addButton} onPress={addExperience}>
                 <AppText style={styles.addText}>+ Add Experience</AppText>
               </Pressable>
 
@@ -208,11 +198,7 @@ export default function ProfileSetupView({ navigation, onSubmit }) {
                     placeholder="Type here..."
                     placeholderTextColor="#777777"
                     value={edu.school}
-                    onChangeText={(text) =>
-                      setEducations(educations.map((item, i) =>
-                        i === index ? { ...item, school: text } : item
-                      ))
-                    }
+                    onChangeText={(text) => updateEducation(index, 'school', text)}
                   />
 
                   <AppText style={styles.label}>Program</AppText>
@@ -222,11 +208,7 @@ export default function ProfileSetupView({ navigation, onSubmit }) {
                     placeholder="Type here..."
                     placeholderTextColor="#777777"
                     value={edu.program}
-                    onChangeText={(text) =>
-                      setEducations(educations.map((item, i) =>
-                        i === index ? { ...item, program: text } : item
-                      ))
-                    }
+                    onChangeText={(text) => updateEducation(index, 'program', text)}
                   />
 
                   <AppText style={styles.label}>Duration</AppText>
@@ -237,11 +219,7 @@ export default function ProfileSetupView({ navigation, onSubmit }) {
                       placeholder="Start Date"
                       placeholderTextColor="#777777"
                       value={edu.start}
-                      onChangeText={(text) =>
-                        setEducations(educations.map((item, i) =>
-                          i === index ? { ...item, start: text } : item
-                        ))
-                      }
+                      onChangeText={(text) => updateEducation(index, 'start', text)}
                     />
 
                     <TextInput
@@ -249,22 +227,13 @@ export default function ProfileSetupView({ navigation, onSubmit }) {
                       placeholder="End Date"
                       placeholderTextColor="#777777"
                       value={edu.end}
-                      onChangeText={(text) =>
-                        setEducations(educations.map((item, i) =>
-                          i === index ? { ...item, end: text } : item
-                        ))
-                      }
+                      onChangeText={(text) => updateEducation(index, 'end', text)}
                     />
                   </View>
                 </View>
               ))}
 
-              <Pressable
-                style={styles.addButton}
-                onPress={() =>
-                  setEducations([...educations, { school: '', program: '', start: '', end: '' }])
-                }
-              >
+              <Pressable style={styles.addButton} onPress={addEducation}>
                 <AppText style={styles.addText}>+ Add Education</AppText>
               </Pressable>
 
@@ -286,6 +255,8 @@ export default function ProfileSetupView({ navigation, onSubmit }) {
                   value={skillInput}
                   onChangeText={setSkillInput}
                   onSubmitEditing={addSkill}
+                  returnKeyType="done"
+                  blurOnSubmit={false}
                 />
 
                 <Pressable onPress={addSkill}>
@@ -298,7 +269,7 @@ export default function ProfileSetupView({ navigation, onSubmit }) {
                   <View key={skill} style={styles.chip}>
                     <AppText style={styles.chipText}>{skill}</AppText>
 
-                    <Pressable onPress={() => setSkills(skills.filter((s) => s !== skill))}>
+                    <Pressable onPress={() => removeSkill(skill)}>
                       <Ionicons name="close" size={14} color="#011F5B" style={{ marginLeft: 6 }} />
                     </Pressable>
                   </View>
@@ -332,32 +303,28 @@ export default function ProfileSetupView({ navigation, onSubmit }) {
               <View style={styles.reviewCard}>
                 <AppText style={styles.reviewTitle}>Work Experience</AppText>
 
-                {experiences.filter((e) => e.title.trim() !== '').length === 0 ? (
+                {filledExperiences.length === 0 ? (
                   <AppText style={styles.reviewDetail}>Summary...</AppText>
                 ) : (
-                  experiences
-                    .filter((e) => e.title.trim() !== '')
-                    .map((e, i) => (
-                      <AppText key={i} style={styles.reviewDetail}>
-                        {e.title} ({e.start || '-'} to {e.end || '-'})
-                      </AppText>
-                    ))
+                  filledExperiences.map((e, i) => (
+                    <AppText key={i} style={styles.reviewDetail}>
+                      {e.title} ({e.start || '-'} to {e.end || '-'})
+                    </AppText>
+                  ))
                 )}
               </View>
 
               <View style={styles.reviewCard}>
                 <AppText style={styles.reviewTitle}>Education</AppText>
 
-                {educations.filter((e) => e.school.trim() !== '').length === 0 ? (
+                {filledEducations.length === 0 ? (
                   <AppText style={styles.reviewDetail}>Summary...</AppText>
                 ) : (
-                  educations
-                    .filter((e) => e.school.trim() !== '')
-                    .map((e, i) => (
-                      <AppText key={i} style={styles.reviewDetail}>
-                        {e.school}{e.program ? ` - ${e.program}` : ''}
-                      </AppText>
-                    ))
+                  filledEducations.map((e, i) => (
+                    <AppText key={i} style={styles.reviewDetail}>
+                      {e.school}{e.program ? ` - ${e.program}` : ''}
+                    </AppText>
+                  ))
                 )}
               </View>
 
@@ -387,20 +354,19 @@ export default function ProfileSetupView({ navigation, onSubmit }) {
               </View>
 
               <Pressable
-                style={styles.mainButton}
-                onPress={() => {
-                  if (onSubmit) {
-                    onSubmit({ cvFile, photoUri, experiences, educations, skills });
-                  }
-                }}
+                style={[styles.mainButton, submitting && styles.disabledButton]}
+                onPress={submit}
+                disabled={submitting}
               >
-                <AppText style={styles.buttonText}>Confirm and Submit</AppText>
+                <AppText style={styles.buttonText}>
+                  {submitting ? 'Submitting...' : 'Confirm and Submit'}
+                </AppText>
               </Pressable>
             </>
           )}
 
         </ScrollView>
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -502,6 +468,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
+  disabledButton: {
+    opacity: 0.5,
+  },
+
   skipButton: {
     height: 41,
     backgroundColor: '#5B74A3',
@@ -549,6 +519,12 @@ const styles = StyleSheet.create({
     color: '#555555',
     marginTop: 10,
     textAlign: 'center',
+  },
+
+  uploadSubtext: {
+    fontSize: 11,
+    color: '#777777',
+    marginTop: 4,
   },
 
   photoWrapper: {
