@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, TextInput, Pressable, Image, ScrollView, SafeAreaView, Platform, StatusBar, Keyboard, TouchableWithoutFeedback, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import AppText from './AppText';
+import { useState } from 'react';
+import { Alert, Image, Keyboard, Platform, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, TextInput, TouchableWithoutFeedback, View } from 'react-native';
 import { loginUser } from '../controllers/LoginController';
+import AppText from './AppText';
 
 export default function LoginView({ onNavigate }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -13,7 +13,7 @@ export default function LoginView({ onNavigate }) {
     email.trim() !== '' &&
     password !== '';
 
-  const handleLogin = async () => {
+    const handleLogin = async () => {
     try {
       const result = await loginUser(email, password);
       const role = result.profile?.role?.toLowerCase();
@@ -21,7 +21,7 @@ export default function LoginView({ onNavigate }) {
       if (role === 'employee') {
         onNavigate('EmployeeOnboarding');
       } else if (role === 'employer') {
-        onNavigate('');
+        onNavigate('MainApp', { profile: result.profile });
       } else {
         Alert.alert('Login Failed', 'Your account role could not be identified.');
       }

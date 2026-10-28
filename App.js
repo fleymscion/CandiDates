@@ -16,7 +16,8 @@ function App() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
   // Start on Login so you sign in for real (saving needs a signed-in user)
-  const [currentScreen, setCurrentScreen] = useState('EmployeeProfile');
+  //const [currentScreen, setCurrentScreen] = useState('EmployeeProfile');
+  const [currentScreen, setCurrentScreen] = useState('Login');
   const [email, setEmail] = useState('');
   const [userData, setUserData] = useState(null);
 

@@ -1,20 +1,21 @@
-import React, { useCallback, useState } from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { NavigationContainer, useFocusEffect } from '@react-navigation/native';
+import { useCallback, useState } from 'react';
+import { EmployeeProfileController } from '../controllers/EmployeeProfileController';
+import { EmployerProfileController } from '../controllers/EmployerProfileController';
+import { PreferencesController } from '../controllers/PreferencesController';
 import { GeneralCalendar, HiddenCalendar, HighlightCalendar } from './CalendarScreens';
 import CalendarViewModeView from './CalendarViewModeView';
 import DashboardView from './DashboardView';
 import EditProfileView from './EditProfileView';
 import EmployeeProfileView from './EmployeeProfileView';
+import EmployerPostsView from './EmployerPostsView';
 import EmployerProfileView from './EmployerProfileView';
+import { EventProvider, useEvents } from './EventContext';
 import JobCategoriesView from './JobCategoriesView';
 import PostNewEventView from './PostNewEventView';
-import ResumesPortfoliosView from './ResumesPortfoliosView';
-import { EventProvider, useEvents } from './EventContext';
 import { PreferencesProvider } from './PreferencesContext';
-import { EmployeeProfileController } from '../controllers/EmployeeProfileController';
-import { EmployerProfileController } from '../controllers/EmployerProfileController';
-import { PreferencesController } from '../controllers/PreferencesController';
+import ResumesPortfoliosView from './ResumesPortfoliosView';
 
 const Drawer = createDrawerNavigator();
 
@@ -22,6 +23,10 @@ const Drawer = createDrawerNavigator();
 const hiddenFromDrawer = { drawerItemStyle: { display: 'none' } };
 
 const getUserId = (userData) => userData?.id || userData?.uid;
+
+// Accepts "employer", "Employer", "EMPLOYER", etc. and returns 'Employer' or 'Employee'
+const normalizeRole = (userRole) =>
+  String(userRole || '').trim().toLowerCase() === 'employer' ? 'Employer' : 'Employee';
 
 function ProfileScreenWrapper({ navigation, userRole, userData, onNavigate }) {
   if (userRole === 'Employer') {
@@ -71,7 +76,11 @@ function PostEventScreen({ navigation, userData }) {
 }
 
 export default function DrawerNavigator({ userRole = 'Employee', userData, onNavigate }) {
-  const isEmployer = userRole === 'Employer';
+  console.log('DrawerNavigator userRole:', userRole);
+  // TEMPORARY TEST: forces the Employer screens to show.
+   
+const role = normalizeRole(userData?.role || userData?.userRole || userRole);  //const role = 'Employer';
+  const isEmployer = role === 'Employer';
 
   return (
     <NavigationContainer>
@@ -96,16 +105,20 @@ export default function DrawerNavigator({ userRole = 'Employee', userData, onNav
             <Drawer.Screen name="General Calendar" component={GeneralCalendar} />
 
             <Drawer.Screen name="Profile">
-              {(props) => <ProfileScreenWrapper {...props} userRole={userRole} userData={userData} onNavigate={onNavigate} />}
+              {(props) => <ProfileScreenWrapper {...props} userRole={role} userData={userData} onNavigate={onNavigate} />}
             </Drawer.Screen>
 
-            {isEmployer && <Drawer.Screen name="Posted Events" component={GeneralCalendar} />}
+            {isEmployer && (
+              <Drawer.Screen name="Posted Events">
+                {(props) => <EmployerPostsView {...props} userData={userData} />}
+              </Drawer.Screen>
+            )}
             <Drawer.Screen name="Hidden Dates" component={HiddenCalendar} />
 
             {/* ---- Profile menu destinations (hidden from the drawer list) ---- */}
             <Drawer.Screen name="CalendarViewMode" component={CalendarViewModeView} options={hiddenFromDrawer} />
             <Drawer.Screen name="EditProfileFrame" options={hiddenFromDrawer}>
-              {(props) => <EditProfileScreen {...props} userRole={userRole} userData={userData} />}
+              {(props) => <EditProfileScreen {...props} userRole={role} userData={userData} />}
             </Drawer.Screen>
 
             {isEmployer ? (
