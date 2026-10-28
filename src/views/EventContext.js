@@ -1,58 +1,53 @@
-import React, { createContext, useContext, useState } from 'react';
-import { DateModel } from '../models/DateModel';
-
-const initialEvents = [
-  new DateModel('1', '', 'Calendar', 'March 1, 2026', '10:00 AM', ['TIP'], 'Description here', 'regular', false),
-  new DateModel('2', '', 'TESTHIGHLIGHT', 'March 12, 2026', '02:00 PM', ['TIP'], 'Description here', 'highlighted', false),
-  new DateModel('3', '', 'Calendar', 'March 15, 2026', '09:00 AM', ['TIP'], 'Description here', 'regular', false),
-  new DateModel('4', '', 'Calendar', 'March 20, 2026', '04:00 PM', ['TIP'], 'Description here', 'highlighted', false),
-]; //THESE ARE SAMPLES THAT WILL BE REPLACED BY ACTUAL ITEMS GIVEN BY USERS
+import { createContext, useContext, useState } from 'react';
 
 const EventContext = createContext();
 
 export function EventProvider({ children }) {
-  const [events, setEvents] = useState(initialEvents);
+  const [events, setEvents] = useState([
+    // Sample initial state
+    { id: '1', eventTitle: 'Interview Session', date: 'March 15, 2026', classification: 'normal', isHidden: false },
+    { id: '2', eventTitle: 'Tech Conference', date: 'March 20, 2026', classification: 'highlighted', isHidden: false },
+  ]);
 
-  // Pressing 'X' in General Calendar: Convert highlighted -> regular AND set isHidden -> true
+  // NEW: used by "Post a new event"
+  const addEvent = (event) => {
+    setEvents((prevEvents) => [{ classification: 'normal', ...event, isHidden: false }, ...prevEvents]);
+  };
+
+  // Toggle highlighted status
+  const toggleHighlight = (id) => {
+    setEvents((prevEvents) =>
+      prevEvents.map((item) => {
+        if (item.id === id) {
+          const newClassification = item.classification === 'highlighted' ? 'normal' : 'highlighted';
+          return { ...item, classification: newClassification };
+        }
+        return item;
+      })
+    );
+  };
+
   const hideFromGeneral = (id) => {
-    setEvents((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, classification: 'regular', isHidden: true }
-          : item
-      )
-    );
+    setEvents((prevEvents) => prevEvents.map((item) => (item.id === id ? { ...item, isHidden: true } : item)));
   };
 
-  // Pressing 'X' in Highlight Calendar: Convert highlighted -> regular ONLY (remains visible in General Calendar without blue border)
   const removeFromHighlight = (id) => {
-    setEvents((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, classification: 'regular' }
-          : item
-      )
+    setEvents((prevEvents) =>
+      prevEvents.map((item) => (item.id === id ? { ...item, classification: 'normal' } : item))
     );
   };
 
-  // Pressing '▲' in Hidden Dates: Set isHidden -> false
   const unhideEvent = (id) => {
-    setEvents((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, isHidden: false } : item
-      )
-    );
+    setEvents((prevEvents) => prevEvents.map((item) => (item.id === id ? { ...item, isHidden: false } : item)));
   };
 
   return (
     <EventContext.Provider
-      value={{ events, hideFromGeneral, removeFromHighlight, unhideEvent }}
+      value={{ events, addEvent, toggleHighlight, hideFromGeneral, removeFromHighlight, unhideEvent }}
     >
       {children}
     </EventContext.Provider>
   );
 }
 
-export function useEvents() {
-  return useContext(EventContext);
-}
+export const useEvents = () => useContext(EventContext);

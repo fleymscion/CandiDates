@@ -11,7 +11,7 @@ export default function PostNewEventView({ navigation, onSubmit }) {
   const [description, setDescription] = useState('');
 
   return (
-    <Template title="Create New Event" navigation={navigation}>
+    <Template title="Create New Event" navigation={navigation} showBack>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Add Photo Button Box */}
         <Pressable style={styles.photoBox}>

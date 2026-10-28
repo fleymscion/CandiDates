@@ -1,32 +1,80 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useCallback, useState } from 'react';
+import { ActivityIndicator, Alert, ScrollView, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import Template from './Header';
-import TextStyle from './AppText';
 import { EmployeeProfileController } from '../controllers/EmployeeProfileController';
+import { DEFAULT_NOTIFICATION_PREFS } from '../models/UserPreferencesModel';
+import {
+  LogoutModals,
+  MenuDivider,
+  MenuItem,
+  NotificationPreferencesModal,
+  ProfileHeader,
+  profileStyles,
+} from './ProfileParts';
 
-export default function EmployeeProfileView({ navigation, employeeData }) {
+export default function EmployeeProfileView({ navigation, employeeData, onNavigate }) {
+  const userId = employeeData?.id || employeeData?.uid;
+
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [notifPrefs, setNotifPrefs] = useState(DEFAULT_NOTIFICATION_PREFS);
 
-  useEffect(() => {
-    async function loadProfileData() {
-      try {
-        const data = await EmployeeProfileController.fetchProfile(employeeData?.id || employeeData?.uid);
-        setProfile(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+  const [notifModalVisible, setNotifModalVisible] = useState(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const [logoutSuccessVisible, setLogoutSuccessVisible] = useState(false);
+
+  // Reload whenever this screen gains focus so edits made on other screens show up.
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      async function loadProfileData() {
+        try {
+          const [data, prefs] = await Promise.all([
+            EmployeeProfileController.fetchProfile(userId),
+            EmployeeProfileController.loadNotificationPrefs(userId),
+          ]);
+          if (!active) return;
+          setProfile(data);
+          setNotifPrefs(prefs);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          if (active) setLoading(false);
+        }
       }
-    }
-    loadProfileData();
-  }, [employeeData]);
+      loadProfileData();
+      return () => {
+        active = false;
+      };
+    }, [userId])
+  );
+
+  const handleNotifChange = (next) => {
+    const previous = notifPrefs;
+    setNotifPrefs(next);
+    EmployeeProfileController.saveNotificationPrefs(userId, next).catch(() => {
+      setNotifPrefs(previous);
+      Alert.alert('Could not save', 'Your notification preferences were not saved. Please try again.');
+    });
+  };
+
+  const handleConfirmLogout = async () => {
+    setLogoutModalVisible(false);
+    const result = await EmployeeProfileController.handleLogout();
+    if (result.success) setLogoutSuccessVisible(true);
+    else Alert.alert('Log out failed', result.error);
+  };
+
+  const handleFinishLogout = () => {
+    setLogoutSuccessVisible(false);
+    onNavigate?.('Login');
+  };
 
   if (loading) {
     return (
       <Template title="Profile" navigation={navigation}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View style={profileStyles.loadingContainer}>
           <ActivityIndicator size="large" color="#011F5B" />
         </View>
       </Template>
@@ -35,145 +83,57 @@ export default function EmployeeProfileView({ navigation, employeeData }) {
 
   return (
     <Template title="Profile" navigation={navigation}>
-      <ScrollView style={styles.mainContent} showsVerticalScrollIndicator={false}>
-        {/* Profile Card Header */}
-        <View style={styles.profileHeaderCard}>
-          <View style={styles.avatar} />
-          <View style={styles.profileInfo}>
-            <TextStyle style={styles.employeeName}>{profile?.name || 'Employee Name'}</TextStyle>
-            <TextStyle style={styles.employeeEmail}>{profile?.email || 'Email'}</TextStyle>
+      <ScrollView style={profileStyles.mainContent} showsVerticalScrollIndicator={false}>
+        <ProfileHeader
+          name={profile?.name || 'Employee Name'}
+          email={profile?.email}
+          onEdit={() => navigation?.navigate('EditProfileFrame')}
+        />
 
-            <TouchableOpacity
-              style={styles.editProfileBtn}
-              onPress={() => navigation?.navigate('EditProfileFrame')}
-            >
-              <TextStyle style={styles.editProfileBtnText}>Edit Profile</TextStyle>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Menu Options List */}
-        <View style={styles.menuList}>
-          <TouchableOpacity
-            style={styles.menuItem}
+        <View style={profileStyles.menuList}>
+          <MenuItem
+            icon="heart-outline"
+            label="Highlighted Events (Saved Dates)"
             onPress={() => EmployeeProfileController.handleHighlightedEvents(navigation)}
-          >
-            <Ionicons name="heart-outline" size={20} color="#333" />
-            <TextStyle style={styles.menuText}>Highlighted Events (Saved Dates)</TextStyle>
-            <Ionicons name="chevron-forward" size={18} color="#888" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
+          />
+          <MenuItem
+            icon="download-outline"
+            label="Resume & Portfolio Files"
             onPress={() => EmployeeProfileController.handleResumesAndPortfolios(navigation)}
-          >
-            <Ionicons name="download-outline" size={20} color="#333" />
-            <TextStyle style={styles.menuText}>Resume & Portfolio Files</TextStyle>
-            <Ionicons name="chevron-forward" size={18} color="#888" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
+          />
+          <MenuItem
+            icon="globe-outline"
+            label="Job Categories / Interests"
             onPress={() => EmployeeProfileController.handleJobCategories(navigation)}
-          >
-            <Ionicons name="globe-outline" size={20} color="#333" />
-            <TextStyle style={styles.menuText}>Job Categories / Interests</TextStyle>
-            <Ionicons name="chevron-forward" size={18} color="#888" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => EmployeeProfileController.handleNotificationPreferences(navigation)}
-          >
-            <Ionicons name="notifications-outline" size={20} color="#333" />
-            <TextStyle style={styles.menuText}>Notification Preferences</TextStyle>
-            <Ionicons name="chevron-forward" size={18} color="#888" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
+          />
+          <MenuItem
+            icon="notifications-outline"
+            label="Notification Preferences"
+            onPress={() => setNotifModalVisible(true)}
+          />
+          <MenuItem
+            icon="calendar-outline"
+            label="Calendar View Mode"
             onPress={() => EmployeeProfileController.handleCalendarViewMode(navigation)}
-          >
-            <Ionicons name="calendar-outline" size={20} color="#333" />
-            <TextStyle style={styles.menuText}>Calendar View Mode</TextStyle>
-            <Ionicons name="chevron-forward" size={18} color="#888" />
-          </TouchableOpacity>
-
-          <View style={styles.divider} />
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => EmployeeProfileController.handleLogout(navigation)}
-          >
-            <Ionicons name="log-out-outline" size={20} color="#333" />
-            <TextStyle style={styles.menuText}>Log Out</TextStyle>
-            <Ionicons name="chevron-forward" size={18} color="#888" />
-          </TouchableOpacity>
+          />
+          <MenuDivider />
+          <MenuItem icon="log-out-outline" label="Log Out" onPress={() => setLogoutModalVisible(true)} />
         </View>
       </ScrollView>
+
+      <NotificationPreferencesModal
+        visible={notifModalVisible}
+        onClose={() => setNotifModalVisible(false)}
+        prefs={notifPrefs}
+        onChange={handleNotifChange}
+      />
+      <LogoutModals
+        confirmVisible={logoutModalVisible}
+        successVisible={logoutSuccessVisible}
+        onConfirm={handleConfirmLogout}
+        onCancel={() => setLogoutModalVisible(false)}
+        onFinish={handleFinishLogout}
+      />
     </Template>
   );
 }
-
-const styles = StyleSheet.create({
-  mainContent: {
-    flex: 1,
-  },
-  profileHeaderCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    marginTop: 10,
-  },
-  avatar: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: '#C4C4C4',
-  },
-  profileInfo: {
-    marginLeft: 20,
-    justifyContent: 'center',
-  },
-  employeeName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000000',
-  },
-  employeeEmail: {
-    fontSize: 13,
-    color: '#777777',
-    marginVertical: 4,
-  },
-  editProfileBtn: {
-    backgroundColor: '#E5E5E5',
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-    marginTop: 4,
-  },
-  editProfileBtnText: {
-    fontSize: 11,
-    color: '#555555',
-  },
-  menuList: {
-    marginTop: 10,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-  },
-  menuText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#111111',
-    marginLeft: 12,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#E0E0E0',
-    marginVertical: 10,
-  },
-});

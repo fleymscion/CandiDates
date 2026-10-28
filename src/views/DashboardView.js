@@ -29,7 +29,7 @@ export default function DashboardView({ navigation, route }) {
   );
 
   return (
-    <Template title="Dashboard" navigation={navigation}>
+    <Template title="Dashboard" navigation={navigation} showBack>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {error ? <TextStyle style={styles.candidateSub}>{error}</TextStyle> : null}
 

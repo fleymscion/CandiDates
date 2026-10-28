@@ -1,55 +1,64 @@
-import React from 'react';
-import { StyleSheet, Text, View, SafeAreaView, Platform, StatusBar, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { DrawerActions } from '@react-navigation/native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function Template({ title = "title", children, navigation }) {
+// showBack = true replaces the menu icon with a back arrow (for screens opened from the Profile menu).
+export default function Header({ title, children, navigation, showBack = false }) {
+  const handleOpenDrawer = () => {
+    if (navigation?.dispatch) {
+      navigation.dispatch(DrawerActions.openDrawer());
+    } else if (navigation?.openDrawer) {
+      navigation.openDrawer();
+    }
+  };
+
+  const handleBack = () => {
+    if (navigation?.canGoBack?.()) {
+      navigation.goBack();
+    } else {
+      navigation?.navigate?.('Profile');
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      
-      <View style={styles.headerContainer}>
-
-        <TouchableOpacity onPress={() => navigation?.toggleDrawer()}>
-          <Ionicons name="menu" size={35} color="white" />
+    <View style={styles.container}>
+      <View style={styles.headerBar}>
+        <TouchableOpacity
+          onPress={showBack ? handleBack : handleOpenDrawer}
+          style={styles.iconButton}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          activeOpacity={0.7}
+        >
+          <Ionicons name={showBack ? 'arrow-back' : 'menu'} size={28} color="#FFFFFF" />
         </TouchableOpacity>
 
-        <Text style={styles.headerText}>{title}</Text>
-
-        <View style={{ width: 28 }} />
+        <Text style={styles.title}>{title}</Text>
+        <View style={styles.iconButton} />
       </View>
 
-      <View style={styles.content}>
-        {children}
-      </View>
-
-    </SafeAreaView>
+      <View style={styles.content}>{children}</View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#011F5B', 
-    borderRadius: 10,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0, 
-  },
-  headerContainer: {
-    height: 75, 
+  container: { flex: 1, backgroundColor: '#F5F9FF' },
+  headerBar: {
+    height: 60,
+    backgroundColor: '#011F5B',
     flexDirection: 'row',
-    justifyContent: 'space-between', // <-- Changed from 'center' to push elements to edges
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
   },
-  headerText: {
-    fontSize: 36,
-    fontFamily: "Commissioner",
+  title: {
+    color: '#FFFFFF',
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 10,
   },
-  content: {
-    flex: 1,
-    backgroundColor: '#F5F9FF',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+  iconButton: {
+    width: 32,
+    alignItems: 'center',
   },
+  content: { flex: 1 },
 });
