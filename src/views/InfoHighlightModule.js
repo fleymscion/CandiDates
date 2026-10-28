@@ -35,6 +35,7 @@ export default function InfoHighlightModule({ navigation, route }) {
   );
 
   const handleToggle = async (value) => {
+    setError(null); // FIX 3: clear old error on each attempt
     setCompany((prev) => ({ ...prev, isHighlighted: value }));
     const result = await InfoHighlightController.toggleHighlight(companyId, value);
     if (!result.success) {
@@ -43,18 +44,11 @@ export default function InfoHighlightModule({ navigation, route }) {
     }
   };
 
-  if (error) {
-    return (
-      <Template title="Company Profile" navigation={navigation}>
-        <Text style={styles.body}>{error}</Text>
-      </Template>
-    );
-  }
-
+  // FIX 1: only take over the whole screen when there is no company to show
   if (!company) {
     return (
       <Template title="Company Profile" navigation={navigation}>
-        <Text style={styles.body}>Loading...</Text>
+        <Text style={styles.body}>{error ?? 'Loading...'}</Text>
       </Template>
     );
   }
@@ -62,6 +56,9 @@ export default function InfoHighlightModule({ navigation, route }) {
   return (
     <Template title="Company Profile" navigation={navigation}>
       <ScrollView showsVerticalScrollIndicator={false}>
+        {/* FIX 2: toggle errors show inline, profile stays visible */}
+        {error ? <Text style={styles.body}>{error}</Text> : null}
+
         <View style={styles.logo} />
 
         <View style={styles.tagRow}>
