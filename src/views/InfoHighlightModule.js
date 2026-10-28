@@ -1,23 +1,24 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, Switch, ScrollView, StyleSheet } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import Template from './Header';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useState } from 'react';
+import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import InfoHighlightController from '../controllers/InfoHighlightController';
+import PostAnalyticsController from '../controllers/PostAnalyticsController';
+import Template from './Header';
 
 const NAVY = '#011F5B';
 
 export default function InfoHighlightModule({ navigation, route }) {
-   const companyId = route?.params?.companyId ?? 'company1';
+  const companyId = route?.params?.companyId ?? 'company1';
 
   const [company, setCompany] = useState(null);
   const [error, setError] = useState(null);
-
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
       (async () => {
+        await PostAnalyticsController.trackView(companyId);
         const result = await InfoHighlightController.getCompanyProfile(companyId);
         if (!active) return;
         if (result.success) {
@@ -34,26 +35,20 @@ export default function InfoHighlightModule({ navigation, route }) {
   );
 
   const handleToggle = async (value) => {
-    setCompany((prev) => ({ ...prev, isHighlighted: value })); // update right away
+    setError(null); // FIX 3: clear old error on each attempt
+    setCompany((prev) => ({ ...prev, isHighlighted: value }));
     const result = await InfoHighlightController.toggleHighlight(companyId, value);
     if (!result.success) {
-      setCompany((prev) => ({ ...prev, isHighlighted: !value })); // undo if it failed
+      setCompany((prev) => ({ ...prev, isHighlighted: !value }));
       setError(result.error);
     }
   };
 
-  if (error) {
-    return (
-      <Template title="Company Profile" navigation={navigation}>
-        <Text style={styles.body}>{error}</Text>
-      </Template>
-    );
-  }
-
+  // FIX 1: only take over the whole screen when there is no company to show
   if (!company) {
     return (
       <Template title="Company Profile" navigation={navigation}>
-        <Text style={styles.body}>Loading...</Text>
+        <Text style={styles.body}>{error ?? 'Loading...'}</Text>
       </Template>
     );
   }
@@ -61,10 +56,11 @@ export default function InfoHighlightModule({ navigation, route }) {
   return (
     <Template title="Company Profile" navigation={navigation}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Logo placeholder */}
+        {/* FIX 2: toggle errors show inline, profile stays visible */}
+        {error ? <Text style={styles.body}>{error}</Text> : null}
+
         <View style={styles.logo} />
 
-        {/* Tags */}
         <View style={styles.tagRow}>
           {(company.tags ?? []).map((tag) => (
             <View key={tag} style={styles.tag}>
@@ -73,11 +69,9 @@ export default function InfoHighlightModule({ navigation, route }) {
           ))}
         </View>
 
-        {/* Company overview */}
         <Text style={styles.heading}>Company Overview</Text>
         <Text style={styles.body}>{company.overview}</Text>
 
-        {/* Contact information */}
         <Text style={styles.heading}>Contact Information</Text>
         <View style={styles.contactRow}>
           <Ionicons name="location-outline" size={18} color={NAVY} />
@@ -92,7 +86,6 @@ export default function InfoHighlightModule({ navigation, route }) {
           <Text style={styles.contactText}>{company.email}</Text>
         </View>
 
-        {/* Highlight toggle */}
         <View style={styles.toggleRow}>
           <Text style={styles.toggleLabel}>Highlight this listing</Text>
           <Switch
