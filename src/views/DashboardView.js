@@ -1,7 +1,7 @@
+import React, { useCallback, useState } from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import PostAnalyticsController from '../controllers/PostAnalyticsController';
 import TextStyle from './AppText';
 import Template from './Header';
@@ -29,7 +29,7 @@ export default function DashboardView({ navigation, route }) {
   );
 
   return (
-    <Template title="Dashboard" navigation={navigation} showBack>
+    <Template title="Dashboard" navigation={navigation}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {error ? <TextStyle style={styles.candidateSub}>{error}</TextStyle> : null}
 
@@ -102,6 +102,6 @@ const styles = StyleSheet.create({
   },
   candidateAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#C4C4C4' },
   candidateInfo: { marginLeft: 12 },
-  candidateName: { fontSize: 14, fontWeight: 'bold' },
-  candidateSub: { fontSize: 11, color: '#777777' },
+  candidateName: { fontSize: 14, fontWeight: 'bold', color: '#011F5B' },
+  candidateSub: { fontSize: 12, color: '#777777' },
 });
