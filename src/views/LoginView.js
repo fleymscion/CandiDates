@@ -1,19 +1,32 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Alert, Image, Keyboard, Platform, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, TextInput, TouchableWithoutFeedback, View } from 'react-native';
+import {
+  Image,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
 import { loginUser } from '../controllers/LoginController';
 import AppText from './AppText';
+import showAlert from './showAlert';
 
 export default function LoginView({ onNavigate }) {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const isFormFilled =
-    email.trim() !== '' &&
-    password !== '';
+  const isFormFilled = email.trim() !== '' && password !== '';
 
-    const handleLogin = async () => {
+  const handleLogin = async () => {
+    if (loading) return;
+
+    setLoading(true);
     try {
       const result = await loginUser(email, password);
       const role = result.profile?.role?.toLowerCase();
@@ -23,118 +36,103 @@ export default function LoginView({ onNavigate }) {
       } else if (role === 'employer') {
         onNavigate('MainApp', { profile: result.profile });
       } else {
-        Alert.alert('Login Failed', 'Your account role could not be identified.');
+        showAlert('Login Failed', 'Your account role could not be identified.');
       }
     } catch (error) {
-      Alert.alert('Login Failed', error.message);
+      console.error('Login error:', error);
+      showAlert('Login Failed', error?.message || 'Something went wrong.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.headerContainer}>
-          <Pressable style={{ marginHorizontal: 50 }}>
-            <AppText style={styles.activeTab}>
-              Log In
-            </AppText>
-          </Pressable>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.headerContainer}>
+        <Pressable style={{ marginHorizontal: 50 }}>
+          <AppText style={styles.activeTab}>Log In</AppText>
+        </Pressable>
 
-          <Pressable
-            style={{ marginHorizontal: 50 }}
-            onPress={() => onNavigate('Signup')}
-          >
-            <AppText style={styles.inactiveTab}>
-              Sign Up
-            </AppText>
-          </Pressable>
-        </View>
+        <Pressable
+          style={{ marginHorizontal: 50 }}
+          onPress={() => onNavigate('Signup')}
+        >
+          <AppText style={styles.inactiveTab}>Sign Up</AppText>
+        </Pressable>
+      </View>
 
-        <View style={styles.content}>
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.container}
-            keyboardShouldPersistTaps="handled"
-          >
-            <Image
-              source={require('../../assets/images/LOGO_dark.png')}
-              style={styles.logo}
-            />
+      <View style={styles.content}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
+          <Image
+            source={require('../../assets/images/LOGO_dark.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
 
-            <View style={styles.welcomeContainer}>
-              <AppText style={styles.welcome}>
-                Welcome back!
-              </AppText>
+          <View style={styles.welcomeContainer}>
+            <AppText style={styles.welcome}>Welcome back!</AppText>
 
-              <AppText style={styles.subtitle}>
-                Login to your account
-              </AppText>
-            </View>
+            <AppText style={styles.subtitle}>Login to your account</AppText>
+          </View>
 
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#777777"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+
+          <View style={styles.passwordContainer}>
             <TextInput
-              style={styles.input}
-              placeholder="Email"
+              style={styles.passwordInput}
+              placeholder="Password"
               placeholderTextColor="#777777"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
               autoCapitalize="none"
               autoCorrect={false}
             />
 
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={styles.passwordInput}
-                placeholder="Password"
-                placeholderTextColor="#777777"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-                autoCorrect={false}
+            <Pressable onPress={() => setShowPassword(!showPassword)}>
+              <Ionicons
+                name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                size={21}
+                color="#011F5B"
               />
-
-              <Pressable
-                onPress={() => setShowPassword(!showPassword)}
-              >
-                <Ionicons
-                  name={
-                    showPassword
-                      ? 'eye-outline'
-                      : 'eye-off-outline'
-                  }
-                  size={21}
-                  color="#011F5B"
-                />
-              </Pressable>
-            </View>
-
-            <View style={styles.rememberForgotContainer}>
-              <Pressable
-                onPress={() => onNavigate('ForgotPassword')}
-              >
-                <AppText style={styles.forgotPassword}>
-                  Forgot Password?
-                </AppText>
-              </Pressable>
-            </View>
-
-            <Pressable
-              style={[
-                styles.loginButton,
-                isFormFilled && styles.loginButtonActive,
-              ]}
-              disabled={!isFormFilled}
-              onPress={handleLogin}
-            >
-              <AppText style={styles.loginText}>
-                Log In
-              </AppText>
             </Pressable>
-          </ScrollView>
-        </View>
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+          </View>
+
+          <View style={styles.rememberForgotContainer}>
+            <Pressable onPress={() => onNavigate('ForgotPassword')}>
+              <AppText style={styles.forgotPassword}>Forgot Password?</AppText>
+            </Pressable>
+          </View>
+
+          <Pressable
+            style={[
+              styles.loginButton,
+              isFormFilled && styles.loginButtonActive,
+            ]}
+            disabled={!isFormFilled || loading}
+            onPress={handleLogin}
+          >
+            <AppText style={styles.loginText}>
+              {loading ? 'Logging in...' : 'Log In'}
+            </AppText>
+          </Pressable>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -143,10 +141,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#011F5B',
     borderRadius: 10,
-    paddingTop:
-      Platform.OS === 'android'
-        ? StatusBar.currentHeight
-        : 0,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
 
   headerContainer: {
@@ -185,7 +180,6 @@ const styles = StyleSheet.create({
     height: 115,
     alignSelf: 'center',
     marginBottom: 8,
-    resizeMode: 'contain',
   },
 
   welcome: {

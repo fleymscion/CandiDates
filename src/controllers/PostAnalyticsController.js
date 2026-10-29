@@ -17,13 +17,22 @@ class PostAnalyticsController {
     return snap.exists() ? snap.data().username ?? '' : '';
   }
 
-  async trackView(postId) {
+  // employerId (the post owner) is stored on each record so the security rules
+  // can let only that employer read the stats for their own post.
+  async trackView(postId, employerId) {
     const userId = this.getUserId();
     const problem = check(postId, userId);
     if (problem) return { success: false, error: problem };
+    if (!employerId) return { success: false, error: 'Employer ID is required' };
     try {
       const username = await this._username(userId);
-      await setDoc(doc(db, VIEWS, `${userId}_${postId}`), { userId, postId, username, viewedAt: serverTimestamp() });
+      await setDoc(doc(db, VIEWS, `${userId}_${postId}`), {
+        userId,
+        postId,
+        employerId,
+        username,
+        viewedAt: serverTimestamp(),
+      });
       return { success: true };
     } catch (e) {
       return fail(e);
@@ -34,6 +43,7 @@ class PostAnalyticsController {
     const userId = this.getUserId();
     const problem = check(event?.id, userId);
     if (problem) return { success: false, error: problem };
+    if (!event?.employerId) return { success: false, error: 'Employer ID is required' };
     try {
       const username = await this._username(userId);
       const saved = new SavedDate({
@@ -44,7 +54,11 @@ class PostAnalyticsController {
         date: event.date ?? '',
         savedAt: new Date().toISOString(),
       });
-      await setDoc(doc(db, SAVES, saved.id), { ...saved.toFirebase(), username });
+      await setDoc(doc(db, SAVES, saved.id), {
+        ...saved.toFirebase(),
+        username,
+        employerId: event.employerId,
+      });
       return { success: true };
     } catch (e) {
       return fail(e);
@@ -63,9 +77,28 @@ class PostAnalyticsController {
     }
   }
 
+  // Only returns records for posts owned by the signed-in employer.
   async _records(col, postId) {
-    const snap = await getDocs(query(collection(db, col), where('postId', '==', postId)));
+    const ownerId = this.getUserId();
+    const snap = await getDocs(
+      query(
+        collection(db, col),
+        where('postId', '==', postId),
+        where('employerId', '==', ownerId)
+      )
+    );
     return snap.docs.map((d) => d.data());
+  }
+
+  async getPost(postId) {
+    if (!postId) return { success: false, error: 'Post ID is required' };
+    try {
+      const snap = await getDoc(doc(db, 'events', postId));
+      if (!snap.exists()) return { success: false, error: 'Post not found' };
+      return { success: true, data: { id: snap.id, ...snap.data() } };
+    } catch (e) {
+      return fail(e);
+    }
   }
 
   async getPostStats(postId) {

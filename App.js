@@ -5,36 +5,43 @@ import { ActivityIndicator, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import DrawerNavigator from './src/views/DrawerNavigator';
-import ProfileSetupView from './src/views/EmployeeOnboarding';
+import ProfileSetupView from './src/views/EmployeeOnboardingScreen.js';
+import { EventProvider } from './src/views/EventContext';
 import ForgotPassView from './src/views/ForgotPassView';
+import InfoHighlightModule from './src/views/InfoHighlightModule';
 import LoginView from './src/views/LoginView';
 import ResetEmailView from './src/views/ResetEmailSentView';
 import SignupView from './src/views/SignupView';
 import SplashScreen from './src/views/SplashScreen';
 
+
 function App() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
-
-  // Start on Login so you sign in for real (saving needs a signed-in user)
-  //const [currentScreen, setCurrentScreen] = useState('EmployeeProfile');
-  const [currentScreen, setCurrentScreen] = useState('Login');
+  const [currentScreen, setCurrentScreen] = useState('Splash');
   const [email, setEmail] = useState('');
   const [userData, setUserData] = useState(null);
 
   const handleNavigate = (screen, params = {}) => {
+    console.log(`Navigating to: ${screen}`, params);
+
     if (screen === 'ResetEmail' && params.email) {
       setEmail(params.email);
     }
 
-    if (screen === 'EmployeeProfile' || screen === 'EmployerProfile' || screen === 'MainApp') {
-      if (params.profile) {
-        setUserData(params.profile);
-      } else if (params && Object.keys(params).length > 0) {
-        setUserData(params);
-      }
+    if (params?.profile) {
+      setUserData(params.profile);
+    } else if (params && Object.keys(params).length > 0) {
+      setUserData(params);
     }
 
     setCurrentScreen(screen);
+  };
+
+  // Standardized navigation bridge for screens expecting React Navigation prop structure
+  const navigationProp = {
+    navigate: handleNavigate,
+    replace: handleNavigate,
+    goBack: () => setCurrentScreen('Login'),
   };
 
   useEffect(() => {
@@ -61,46 +68,49 @@ function App() {
   }
 
   const renderScreen = () => {
-    if (currentScreen === 'Splash') {
-      return <SplashScreen onFinish={() => setCurrentScreen('Signup')} />;
-    }
+    switch (currentScreen) {
+      case 'Splash':
+        return <SplashScreen onFinish={() => setCurrentScreen('Signup')} />;
 
-    if (currentScreen === 'Login') {
-      return <LoginView onNavigate={handleNavigate} />;
-    }
+      case 'Login':
+        return <LoginView onNavigate={handleNavigate} navigation={navigationProp} />;
 
-    if (currentScreen === 'ForgotPassword') {
-      return <ForgotPassView onNavigate={handleNavigate} />;
-    }
+      case 'Signup':
+        return <SignupView onNavigate={handleNavigate} navigation={navigationProp} />;
 
-    if (currentScreen === 'ResetEmail') {
-      return <ResetEmailView onNavigate={handleNavigate} email={email} />;
-    }
+      case 'ForgotPassword':
+        return <ForgotPassView onNavigate={handleNavigate} navigation={navigationProp} />;
 
-    if (currentScreen === 'EmployeeOnboarding') {
-      return <ProfileSetupView employeeData={userData} onNavigate={handleNavigate} />;
-    }
+      case 'ResetEmail':
+        return <ResetEmailView onNavigate={handleNavigate} email={email} navigation={navigationProp} />;
 
-    if (
-      currentScreen === 'MainApp' ||
-      currentScreen === 'EmployeeProfile' ||
-      currentScreen === 'EmployerProfile'
-    ) {
-      return (
-        <DrawerNavigator
-          userRole={userData?.role || (currentScreen === 'EmployerProfile' ? 'Employer' : 'Employee')}
-          userData={userData}
-          onNavigate={handleNavigate}
-        />
-      );
-    }
+      case 'EmployeeOnboarding':
+        return <ProfileSetupView employeeData={userData} onNavigate={handleNavigate} navigation={navigationProp} />;
 
-    return <SignupView onNavigate={handleNavigate} />;
+      case 'InfoHighlightModule':
+        return <InfoHighlightModule onNavigate={handleNavigate} userData={userData} navigation={navigationProp} />;
+
+      case 'MainApp':
+      case 'EmployeeProfile':
+      case 'EmployerProfile':
+        return (
+          <DrawerNavigator
+            userRole={userData?.role || (currentScreen === 'EmployerProfile' ? 'Employer' : 'Employee')}
+            userData={userData}
+            onNavigate={handleNavigate}
+          />
+        );
+
+      default:
+        return <SignupView onNavigate={handleNavigate} navigation={navigationProp} />;
+    }
   };
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      {renderScreen()}
+      <EventProvider>
+        {renderScreen()}
+      </EventProvider>
     </GestureHandlerRootView>
   );
 }

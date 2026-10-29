@@ -1,111 +1,222 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, TextInput, Pressable, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import Template from './Header';
-import TextStyle from './AppText';
+import { doc, getDoc } from 'firebase/firestore';
+import { useState } from 'react';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { auth, db } from '../config/firebase';
+import { useEvents } from './EventContext';
+import showAlert from './showAlert';
 
-export default function PostNewEventView({ navigation, onSubmit }) {
+export default function PostNewEventView({ navigation }) {
+  const { addEvent } = useEvents();
+
   const [eventTitle, setEventTitle] = useState('');
   const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [tagsText, setTagsText] = useState('');
+  const [posting, setPosting] = useState(false);
+
+  const canPost = eventTitle.trim() !== '' && date.trim() !== '';
+
+  const handlePost = async () => {
+    if (posting) return;
+
+    if (!canPost) {
+      showAlert('Missing Info', 'Please enter at least a title and a date.');
+      return;
+    }
+
+    setPosting(true);
+
+    // Copy the employer's company info onto the event so employees can see it
+    // without needing read access to the employer's private profile.
+    let profile = {};
+    try {
+      const snap = await getDoc(doc(db, 'users', auth.currentUser.uid));
+      profile = snap.exists() ? snap.data() : {};
+    } catch (error) {
+      console.error('Could not load employer profile:', error);
+    }
+
+    const tags = tagsText
+      .split(/[,\s]+/)
+      .map((t) => t.replace(/^#/, '').trim())
+      .filter(Boolean)
+      .slice(0, 5);
+
+    const ok = await addEvent({
+      eventTitle: eventTitle.trim(),
+      date: date.trim(),
+      location: location.trim(),
+      description: description.trim(),
+      tags,
+      companyName: profile.companyName || profile.username || '',
+      contactEmail: profile.contactEmail || profile.email || '',
+      contactPhone: contactPhone.trim() || profile.phone || '',
+    });
+    setPosting(false);
+
+    if (ok) {
+      setEventTitle('');
+      setDate('');
+      setLocation('');
+      setDescription('');
+      setContactPhone('');
+      setTagsText('');
+      showAlert('Posted', 'Your event has been posted.', () =>
+        navigation.goBack()
+      );
+    } else {
+      showAlert(
+        'Post Failed',
+        'Could not save the event. Check your connection and permissions.'
+      );
+    }
+  };
 
   return (
-    <Template title="Create New Event" navigation={navigation} showBack>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Add Photo Button Box */}
-        <Pressable style={styles.photoBox}>
-          <Ionicons name="add" size={32} color="#FFFFFF" />
-          <TextStyle style={styles.photoText}>Add a photo</TextStyle>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.header}>
+        <Pressable style={styles.headerSide} onPress={() => navigation.goBack()}>
+          <Text style={styles.headerLink}>Back</Text>
         </Pressable>
+        <Text style={styles.headerTitle}>Post new event</Text>
+        <View style={styles.headerSide} />
+      </View>
 
-        {/* Form Inputs */}
-        <TextStyle style={styles.label}>Event Title</TextStyle>
-        <TextInput
-          style={styles.input}
-          placeholder="Event Title"
-          placeholderTextColor="#777777"
-          value={eventTitle}
-          onChangeText={setEventTitle}
-        />
-
-        <TextStyle style={styles.label}>Date/Time</TextStyle>
-        <View style={styles.row}>
+      <KeyboardAvoidingView
+        style={styles.content}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.container}
+        >
+          <Text style={styles.label}>Event title</Text>
           <TextInput
-            style={[styles.input, styles.halfInput]}
-            placeholder="Date"
+            style={styles.input}
+            placeholder="eg. Walk-in Interviews"
+            placeholderTextColor="#777777"
+            value={eventTitle}
+            onChangeText={setEventTitle}
+          />
+
+          <Text style={styles.label}>Date</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="eg. March 15, 2026"
             placeholderTextColor="#777777"
             value={date}
             onChangeText={setDate}
           />
+
+          <Text style={styles.label}>Location</Text>
           <TextInput
-            style={[styles.input, styles.halfInput]}
-            placeholder="Time"
+            style={styles.input}
+            placeholder="eg. Main Office - Room 302"
             placeholderTextColor="#777777"
-            value={time}
-            onChangeText={setTime}
+            value={location}
+            onChangeText={setLocation}
           />
-        </View>
 
-        <TextStyle style={styles.label}>Event Description</TextStyle>
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          placeholder="Enter a brief description about the event"
-          placeholderTextColor="#777777"
-          multiline
-          numberOfLines={4}
-          value={description}
-          onChangeText={setDescription}
-        />
+          <Text style={styles.label}>Description (optional)</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder="Tell candidates what to expect..."
+            placeholderTextColor="#777777"
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            textAlignVertical="top"
+          />
 
-        {/* Submit Button */}
-        <Pressable
-          style={styles.submitButton}
-          onPress={() => {
-            onSubmit?.({ eventTitle, date, time, description });
-            navigation?.goBack();
-          }}
-        >
-          <TextStyle style={styles.submitButtonText}>Post New Event</TextStyle>
-        </Pressable>
-      </ScrollView>
-    </Template>
+          <Text style={styles.label}>Contact phone (optional)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="eg. +63 917 553 0251"
+            placeholderTextColor="#777777"
+            value={contactPhone}
+            onChangeText={setContactPhone}
+            keyboardType="phone-pad"
+          />
+
+          <Text style={styles.label}>Tags (optional)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="eg. engineering, CS/IT, onsite"
+            placeholderTextColor="#777777"
+            value={tagsText}
+            onChangeText={setTagsText}
+            autoCapitalize="none"
+          />
+
+          <Pressable
+            style={[styles.postButton, canPost && styles.postButtonActive]}
+            onPress={handlePost}
+            disabled={posting}
+          >
+            <Text style={styles.postButtonText}>
+              {posting ? 'Posting...' : 'Post event'}
+            </Text>
+          </Pressable>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { flex: 1 },
-  photoBox: {
-    height: 120,
-    backgroundColor: '#7F9DD5',
-    borderRadius: 10,
-    justifyContent: 'center',
+  safeArea: { flex: 1, backgroundColor: '#011F5B' },
+  header: {
+    height: 70,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    justifyContent: 'space-between',
   },
-  photoText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600', marginTop: 4 },
-  label: { fontSize: 14, fontWeight: '600', marginBottom: 6 },
+  headerSide: { width: 60 },
+  headerLink: { color: '#FFFFFF', fontSize: 14 },
+  headerTitle: { color: '#FFFFFF', fontSize: 20, fontWeight: '600' },
+  content: {
+    flex: 1,
+    backgroundColor: '#F5F9FF',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+  container: { paddingBottom: 30 },
+  label: { fontSize: 14, fontWeight: '600', marginBottom: 8 },
   input: {
+    height: 40,
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
     borderColor: '#B5B5B5',
     borderRadius: 10,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 6,
+    fontFamily: 'Commissioner',
     fontSize: 14,
-    marginBottom: 16,
+    marginBottom: 18,
   },
-  row: { flexDirection: 'row', justifyContent: 'space-between' },
-  halfInput: { width: '48%' },
-  textArea: { height: 100, textAlignVertical: 'top' },
-  submitButton: {
-    backgroundColor: '#284B91',
+  textArea: { height: 110, paddingTop: 10 },
+  postButton: {
     height: 46,
+    backgroundColor: '#7F9DD5',
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 30,
+    marginTop: 5,
   },
-  submitButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
+  postButtonActive: { backgroundColor: '#2B5195' },
+  postButtonText: { color: '#FFFFFF', fontSize: 18, fontWeight: '600' },
 });

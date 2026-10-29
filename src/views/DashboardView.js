@@ -1,13 +1,14 @@
-import React, { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useState } from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import PostAnalyticsController from '../controllers/PostAnalyticsController';
 import TextStyle from './AppText';
 import Template from './Header';
 
 export default function DashboardView({ navigation, route }) {
-  const postId = route?.params?.postId ?? 'test-post';
+  // Set by the Stats button on a post
+  const postId = route?.params?.postId;
 
   const [stats, setStats] = useState({ views: 0, saves: 0 });
   const [tab, setTab] = useState('saves');
@@ -16,17 +17,29 @@ export default function DashboardView({ navigation, route }) {
 
   useFocusEffect(
     useCallback(() => {
+      if (!postId) return undefined;
       let active = true;
       (async () => {
         const s = await PostAnalyticsController.getPostStats(postId);
         const c = await PostAnalyticsController.getCandidates(postId, tab);
         if (!active) return;
+        setError(null);
         if (s.success) setStats(s.data); else setError(s.error);
         if (c.success) setCandidates(c.data); else setError(c.error);
       })();
       return () => { active = false; };
     }, [postId, tab])
   );
+
+  if (!postId) {
+    return (
+      <Template title="Dashboard" navigation={navigation}>
+        <TextStyle style={styles.candidateSub}>
+          Open one of your posts and tap Stats to see its analytics.
+        </TextStyle>
+      </Template>
+    );
+  }
 
   return (
     <Template title="Dashboard" navigation={navigation}>

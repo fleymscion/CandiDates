@@ -1,8 +1,21 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, Pressable, Image, SafeAreaView, Platform, StatusBar, Alert, ScrollView, KeyboardAvoidingView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import AppText from './AppText';
+import { useState } from 'react';
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { signupUser } from '../controllers/SignupController';
+import AppText from './AppText';
+import showAlert from './showAlert';
 
 export default function SignupView({ onNavigate }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -13,6 +26,7 @@ export default function SignupView({ onNavigate }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const isFormFilled =
     accountType !== '' &&
@@ -22,14 +36,14 @@ export default function SignupView({ onNavigate }) {
     confirmPassword !== '';
 
   const handleSignup = async () => {
+    if (loading) return;
+
     if (!accountType) {
-      Alert.alert(
-        'Account Type Required',
-        'Please select Employee or Employer.'
-      );
+      showAlert('Account Type Required', 'Please select Employee or Employer.');
       return;
     }
 
+    setLoading(true);
     try {
       const result = await signupUser(
         username,
@@ -39,18 +53,16 @@ export default function SignupView({ onNavigate }) {
         accountType
       );
 
-      Alert.alert(
+      showAlert(
         'Success',
         `Your ${result.profile.role.toLowerCase()} account has been created!`,
-        [
-          {
-            text: 'OK',
-            onPress: () => onNavigate('Login'),
-          },
-        ]
+        () => onNavigate('Login')
       );
     } catch (error) {
-      Alert.alert('Signup Failed', error.message);
+      console.error('Signup error:', error);
+      showAlert('Signup Failed', error?.message || 'Something went wrong.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -84,26 +96,20 @@ export default function SignupView({ onNavigate }) {
             <Image
               source={require('../../assets/images/LOGO_dark.png')}
               style={styles.logo}
+              resizeMode="contain"
             />
 
-            <AppText style={styles.welcome}>
-              Welcome!
-            </AppText>
+            <AppText style={styles.welcome}>Welcome!</AppText>
 
-            <AppText style={styles.subtitle}>
-              Create your account
-            </AppText>
+            <AppText style={styles.subtitle}>Create your account</AppText>
 
-            <AppText style={styles.label}>
-              Join CandiDates as an
-            </AppText>
+            <AppText style={styles.label}>Join CandiDates as an</AppText>
 
             <View style={styles.accountTypeContainer}>
               <Pressable
                 style={[
                   styles.accountTypeButton,
-                  accountType === 'employee' &&
-                    styles.selectedAccountType,
+                  accountType === 'employee' && styles.selectedAccountType,
                 ]}
                 onPress={() => setAccountType('employee')}
               >
@@ -121,8 +127,7 @@ export default function SignupView({ onNavigate }) {
               <Pressable
                 style={[
                   styles.accountTypeButton,
-                  accountType === 'employer' &&
-                    styles.selectedAccountType,
+                  accountType === 'employer' && styles.selectedAccountType,
                 ]}
                 onPress={() => setAccountType('employer')}
               >
@@ -171,15 +176,9 @@ export default function SignupView({ onNavigate }) {
                 autoCorrect={false}
               />
 
-              <Pressable
-                onPress={() => setShowPassword(!showPassword)}
-              >
+              <Pressable onPress={() => setShowPassword(!showPassword)}>
                 <Ionicons
-                  name={
-                    showPassword
-                      ? 'eye-outline'
-                      : 'eye-off-outline'
-                  }
+                  name={showPassword ? 'eye-outline' : 'eye-off-outline'}
                   size={21}
                   color="#011F5B"
                 />
@@ -199,16 +198,10 @@ export default function SignupView({ onNavigate }) {
               />
 
               <Pressable
-                onPress={() =>
-                  setShowConfirmPassword(!showConfirmPassword)
-                }
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
               >
                 <Ionicons
-                  name={
-                    showConfirmPassword
-                      ? 'eye-outline'
-                      : 'eye-off-outline'
-                  }
+                  name={showConfirmPassword ? 'eye-outline' : 'eye-off-outline'}
                   size={21}
                   color="#011F5B"
                 />
@@ -221,9 +214,10 @@ export default function SignupView({ onNavigate }) {
                 isFormFilled && styles.signupButtonActive,
               ]}
               onPress={handleSignup}
+              disabled={loading}
             >
               <AppText style={styles.signupText}>
-                Sign Up
+                {loading ? 'Creating account...' : 'Sign Up'}
               </AppText>
             </Pressable>
           </View>
@@ -238,10 +232,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#011F5B',
     borderRadius: 10,
-    paddingTop:
-      Platform.OS === 'android'
-        ? StatusBar.currentHeight
-        : 0,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
 
   headerContainer: {
@@ -290,7 +281,6 @@ const styles = StyleSheet.create({
     height: 115,
     alignSelf: 'center',
     marginBottom: 8,
-    resizeMode: 'contain',
   },
 
   welcome: {

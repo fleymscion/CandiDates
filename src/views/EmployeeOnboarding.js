@@ -1,17 +1,16 @@
-import React from 'react';
-import {
-  StyleSheet,
-  View,
-  TextInput,
-  Pressable,
-  Image,
-  ScrollView,
-  SafeAreaView,
-  Platform,
-  StatusBar,
-  KeyboardAvoidingView,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
 import AppText from './AppText';
 
 const TITLES = [
@@ -34,12 +33,13 @@ const SUBTITLES = [
 
 export default function ProfileSetupView({
   step,
+  stepError,
   cvFile,
   photoUri,
-  experiences,
-  educations,
+  experiences = [],
+  educations = [],
   skillInput,
-  skills,
+  skills = [],
   submitting,
   next,
   back,
@@ -82,6 +82,9 @@ export default function ProfileSetupView({
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.container}
         >
+          {!!stepError && (
+            <AppText style={styles.errorText}>{stepError}</AppText>
+          )}
 
           {step === 1 && (
             <>
@@ -364,7 +367,6 @@ export default function ProfileSetupView({
               </Pressable>
             </>
           )}
-
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -372,7 +374,6 @@ export default function ProfileSetupView({
 }
 
 const styles = StyleSheet.create({
-
   safeArea: {
     flex: 1,
     backgroundColor: '#011F5B',
@@ -428,6 +429,12 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     paddingTop: 10,
     paddingBottom: 30,
+  },
+
+  errorText: {
+    color: '#C0392B',
+    fontSize: 13,
+    marginBottom: 12,
   },
 
   label: {

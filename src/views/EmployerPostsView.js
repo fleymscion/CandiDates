@@ -1,53 +1,50 @@
+import { getAuth } from 'firebase/auth';
 import { useMemo } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import EventCard from './EventCard';
 import { useEvents } from './EventContext';
+import showAlert from './showAlert';
 
-const getUserId = (userData) => userData?.id || userData?.uid;
+const getUserId = (userData) =>
+  userData?.id || userData?.uid || getAuth().currentUser?.uid;
 
-// Works with a few possible field names, since the event shape comes from EmployerProfileController.buildEvent
-const getOwnerId = (e) => e?.employerId || e?.postedBy || e?.userId || e?.ownerId;
-const getTitle = (e) => e?.title || e?.eventTitle || e?.name || 'Untitled event';
-const getDate = (e) => e?.date || e?.startDate || '';
-const getDescription = (e) => e?.description || e?.details || '';
-
-const formatDate = (value) => {
-  if (!value) return '';
-  // Firestore Timestamp support
-  const raw = typeof value?.toDate === 'function' ? value.toDate() : value;
-  const d = new Date(raw);
-  return isNaN(d.getTime()) ? String(value) : d.toLocaleDateString();
+const confirmDelete = (onConfirm) => {
+  if (Platform.OS === 'web') {
+    if (window.confirm('Delete this event?')) onConfirm();
+  } else {
+    // Imported lazily so web builds don't depend on it
+    const { Alert } = require('react-native');
+    Alert.alert('Delete event', 'Delete this event?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: onConfirm },
+    ]);
+  }
 };
 
 export default function EmployerPostsView({ navigation, userData }) {
-  const { events = [] } = useEvents();
+  const { events = [], loading, deleteEvent } = useEvents();
   const myId = getUserId(userData);
 
-  // Guard: if myId is missing, show nothing (prevents undefined === undefined matches)
+  // Only events this employer created (employerId is set when posting)
   const myPosts = useMemo(
     () =>
       myId
-        ? events.filter((e) => {
-            const ownerId = getOwnerId(e);
-            return ownerId != null && String(ownerId) === String(myId);
-          })
+        ? events
+            .filter((e) => e?.employerId && String(e.employerId) === String(myId))
+            .sort((a, b) => {
+              const ta = a.createdAt?.toMillis?.() ?? 0;
+              const tb = b.createdAt?.toMillis?.() ?? 0;
+              return tb - ta;
+            })
         : [],
     [events, myId]
   );
 
-  const renderItem = ({ item }) => {
-    const date = formatDate(getDate(item));
-    const description = getDescription(item);
-    return (
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>{getTitle(item)}</Text>
-        {!!date && <Text style={styles.cardMeta}>{date}</Text>}
-        {!!description && (
-          <Text style={styles.cardBody} numberOfLines={3}>
-            {description}
-          </Text>
-        )}
-      </View>
-    );
+  const handleDelete = (id) => {
+    confirmDelete(async () => {
+      const ok = await deleteEvent(id);
+      if (!ok) showAlert('Delete Failed', 'Could not delete the event.');
+    });
   };
 
   return (
@@ -76,13 +73,18 @@ export default function EmployerPostsView({ navigation, userData }) {
 
       <FlatList
         data={myPosts}
-        keyExtractor={(item, index) => String(item?.id ?? index)}
-        renderItem={renderItem}
-        contentContainerStyle={{ padding: 16, paddingTop: 8 }}
+        numColumns={2}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={({ item }) => <EventCard item={item} onDelete={handleDelete} />}
+        contentContainerStyle={{ padding: 10, paddingTop: 4 }}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>Start your first post</Text>
-            <Text style={styles.emptyBody}>Events you post will show up here.</Text>
+            <Text style={styles.emptyTitle}>
+              {loading ? 'Loading...' : 'Start your first post'}
+            </Text>
+            {!loading && (
+              <Text style={styles.emptyBody}>Events you post will show up here.</Text>
+            )}
           </View>
         }
       />
@@ -113,17 +115,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   postButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 14,
-    marginTop: 10,
-    borderWidth: 1,
-    borderColor: '#E1E8F5',
-  },
-  cardTitle: { fontSize: 17, fontWeight: '600', color: '#011F5B' },
-  cardMeta: { fontSize: 13, color: '#5A6B8C', marginTop: 2 },
-  cardBody: { fontSize: 14, color: '#2A3550', marginTop: 6 },
   empty: { alignItems: 'center', marginTop: 40 },
   emptyTitle: { fontSize: 18, fontWeight: '600', color: '#011F5B' },
   emptyBody: { fontSize: 14, color: '#5A6B8C', marginTop: 4 },
