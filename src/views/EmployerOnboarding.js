@@ -1,10 +1,22 @@
-import React from 'react';
-import { StyleSheet, View, TextInput, Pressable, Image, ScrollView, SafeAreaView, Platform, StatusBar } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  Image,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
 import AppText from './AppText';
 
+// stepReady = true when the current step's required fields are filled in.
+// The main button changes color to show the user they can move on.
 export default function EmployerOnboarding({
   step,
+  stepReady = false,
   logoUri,
   companyName,
   industry,
@@ -29,7 +41,6 @@ export default function EmployerOnboarding({
   back,
   finish,
 }) {
-
   const titles = [
     'Company Info',
     'Verify your business',
@@ -40,9 +51,11 @@ export default function EmployerOnboarding({
   const subtitles = [
     'This appears on every CandiDate you post.',
     'Required before you can post CandiDates.',
-    'Help candidates know who they\'re meeting.',
-    'Here\'s what candidates will see.',
+    "Help candidates know who they're meeting.",
+    "Here's what candidates will see.",
   ];
+
+  const mainButtonStyle = [styles.mainButton, stepReady && styles.mainButtonReady];
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -51,17 +64,11 @@ export default function EmployerOnboarding({
           <Ionicons name="arrow-back-circle" size={26} color="#FFFFFF" />
         </Pressable>
 
-        <AppText style={styles.stepText}>
-          Step {step} of 4
-        </AppText>
+        <AppText style={styles.stepText}>Step {step} of 4</AppText>
 
-        <AppText style={styles.headerTitle}>
-          {titles[step - 1]}
-        </AppText>
+        <AppText style={styles.headerTitle}>{titles[step - 1]}</AppText>
 
-        <AppText style={styles.headerSubtitle}>
-          {subtitles[step - 1]}
-        </AppText>
+        <AppText style={styles.headerSubtitle}>{subtitles[step - 1]}</AppText>
       </View>
 
       <View style={styles.content}>
@@ -70,7 +77,6 @@ export default function EmployerOnboarding({
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.container}
         >
-
           {step === 1 && (
             <>
               <View style={styles.logoRow}>
@@ -119,7 +125,7 @@ export default function EmployerOnboarding({
                 keyboardType="url"
               />
 
-              <Pressable style={styles.mainButton} onPress={next}>
+              <Pressable style={mainButtonStyle} onPress={next}>
                 <AppText style={styles.buttonText}>Next</AppText>
               </Pressable>
             </>
@@ -158,7 +164,7 @@ export default function EmployerOnboarding({
                 Review usually takes 1-2 business days. You can finish your profile in the meantime.
               </AppText>
 
-              <Pressable style={styles.mainButton} onPress={submitPermit}>
+              <Pressable style={mainButtonStyle} onPress={submitPermit}>
                 <AppText style={styles.buttonText}>Submit & Continue</AppText>
               </Pressable>
 
@@ -211,8 +217,8 @@ export default function EmployerOnboarding({
                 autoCapitalize="none"
               />
 
-              <Pressable style={styles.mainButton} onPress={next}>
-                <AppText style={styles.buttonText}>Finish Setup</AppText>
+              <Pressable style={mainButtonStyle} onPress={next}>
+                <AppText style={styles.buttonText}>Next</AppText>
               </Pressable>
             </>
           )}
@@ -266,12 +272,11 @@ export default function EmployerOnboarding({
                 </AppText>
               </View>
 
-              <Pressable style={styles.mainButton} onPress={finish}>
+              <Pressable style={mainButtonStyle} onPress={finish}>
                 <AppText style={styles.buttonText}>Finish Setup</AppText>
               </Pressable>
             </>
           )}
-
         </ScrollView>
       </View>
     </SafeAreaView>
@@ -279,7 +284,6 @@ export default function EmployerOnboarding({
 }
 
 const styles = StyleSheet.create({
-
   safeArea: {
     flex: 1,
     backgroundColor: '#011F5B',
@@ -369,6 +373,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 5,
     marginBottom: 12,
+  },
+
+  // Darker color shown when the step is complete and the user can continue
+  mainButtonReady: {
+    backgroundColor: '#2B5195',
   },
 
   skipButton: {

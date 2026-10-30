@@ -17,6 +17,49 @@ import { signupUser } from '../controllers/SignupController';
 import AppText from './AppText';
 import showAlert from './showAlert';
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Returns an object of field -> error message. Empty object = form is valid.
+const validate = ({ accountType, username, email, password, confirmPassword }) => {
+  const errors = {};
+
+  if (!accountType) {
+    errors.accountType = 'Please select Employee or Employer.';
+  }
+
+  const name = username.trim();
+  if (!name) {
+    errors.username = 'Username is required.';
+  } else if (name.length < 3) {
+    errors.username = 'Username must be at least 3 characters.';
+  } else if (!/^[A-Za-z0-9._-]+$/.test(name)) {
+    errors.username = 'Use only letters, numbers, dots, dashes and underscores.';
+  }
+
+  const mail = email.trim();
+  if (!mail) {
+    errors.email = 'Email is required.';
+  } else if (!EMAIL_PATTERN.test(mail)) {
+    errors.email = 'Please enter a valid email address.';
+  }
+
+  if (!password) {
+    errors.password = 'Password is required.';
+  } else if (password.length < 8) {
+    errors.password = 'Password must be at least 8 characters.';
+  } else if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+    errors.password = 'Password must include at least one letter and one number.';
+  }
+
+  if (!confirmPassword) {
+    errors.confirmPassword = 'Please confirm your password.';
+  } else if (password !== confirmPassword) {
+    errors.confirmPassword = 'Passwords do not match.';
+  }
+
+  return errors;
+};
+
 export default function SignupView({ onNavigate }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -27,27 +70,30 @@ export default function SignupView({ onNavigate }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
-  const isFormFilled =
-    accountType !== '' &&
-    username.trim() !== '' &&
-    email.trim() !== '' &&
-    password !== '' &&
-    confirmPassword !== '';
+  const errors = validate({ accountType, username, email, password, confirmPassword });
+  const isFormValid = Object.keys(errors).length === 0;
+
+  // Inline errors appear after the first sign-up attempt, then update live.
+  const fieldError = (field) => (submitted && errors[field] ? errors[field] : '');
 
   const handleSignup = async () => {
     if (loading) return;
 
-    if (!accountType) {
-      showAlert('Account Type Required', 'Please select Employee or Employer.');
+    setSubmitted(true);
+
+    if (!isFormValid) {
+      const first = Object.values(errors)[0];
+      showAlert('Please check your details', first);
       return;
     }
 
     setLoading(true);
     try {
       const result = await signupUser(
-        username,
-        email,
+        username.trim(),
+        email.trim().toLowerCase(),
         password,
         confirmPassword,
         accountType
@@ -105,7 +151,12 @@ export default function SignupView({ onNavigate }) {
 
             <AppText style={styles.label}>Join CandiDates as an</AppText>
 
-            <View style={styles.accountTypeContainer}>
+            <View
+              style={[
+                styles.accountTypeContainer,
+                !!fieldError('accountType') && styles.inputError,
+              ]}
+            >
               <Pressable
                 style={[
                   styles.accountTypeButton,
@@ -142,9 +193,12 @@ export default function SignupView({ onNavigate }) {
                 </AppText>
               </Pressable>
             </View>
+            {!!fieldError('accountType') && (
+              <AppText style={styles.errorText}>{fieldError('accountType')}</AppText>
+            )}
 
             <TextInput
-              style={styles.input}
+              style={[styles.input, !!fieldError('username') && styles.inputError]}
               placeholder="Username"
               placeholderTextColor="#777777"
               value={username}
@@ -152,9 +206,12 @@ export default function SignupView({ onNavigate }) {
               autoCapitalize="none"
               autoCorrect={false}
             />
+            {!!fieldError('username') && (
+              <AppText style={styles.errorText}>{fieldError('username')}</AppText>
+            )}
 
             <TextInput
-              style={styles.input}
+              style={[styles.input, !!fieldError('email') && styles.inputError]}
               placeholder="Email"
               placeholderTextColor="#777777"
               value={email}
@@ -163,8 +220,16 @@ export default function SignupView({ onNavigate }) {
               autoCapitalize="none"
               autoCorrect={false}
             />
+            {!!fieldError('email') && (
+              <AppText style={styles.errorText}>{fieldError('email')}</AppText>
+            )}
 
-            <View style={styles.passwordContainer}>
+            <View
+              style={[
+                styles.passwordContainer,
+                !!fieldError('password') && styles.inputError,
+              ]}
+            >
               <TextInput
                 style={styles.passwordInput}
                 placeholder="Password"
@@ -184,8 +249,20 @@ export default function SignupView({ onNavigate }) {
                 />
               </Pressable>
             </View>
+            {fieldError('password') ? (
+              <AppText style={styles.errorText}>{fieldError('password')}</AppText>
+            ) : (
+              <AppText style={styles.hintText}>
+                At least 8 characters, with a letter and a number.
+              </AppText>
+            )}
 
-            <View style={styles.passwordContainer}>
+            <View
+              style={[
+                styles.passwordContainer,
+                !!fieldError('confirmPassword') && styles.inputError,
+              ]}
+            >
               <TextInput
                 style={styles.passwordInput}
                 placeholder="Confirm Password"
@@ -207,11 +284,14 @@ export default function SignupView({ onNavigate }) {
                 />
               </Pressable>
             </View>
+            {!!fieldError('confirmPassword') && (
+              <AppText style={styles.errorText}>{fieldError('confirmPassword')}</AppText>
+            )}
 
             <Pressable
               style={[
                 styles.signupButton,
-                isFormFilled && styles.signupButtonActive,
+                isFormValid && styles.signupButtonActive,
               ]}
               onPress={handleSignup}
               disabled={loading}
@@ -344,6 +424,24 @@ const styles = StyleSheet.create({
     fontFamily: 'Commissioner',
     fontSize: 18,
     marginBottom: 18,
+  },
+
+  inputError: {
+    borderColor: '#C0392B',
+  },
+
+  errorText: {
+    color: '#C0392B',
+    fontSize: 12,
+    marginTop: -12,
+    marginBottom: 14,
+  },
+
+  hintText: {
+    color: '#777777',
+    fontSize: 12,
+    marginTop: -12,
+    marginBottom: 14,
   },
 
   passwordContainer: {

@@ -5,15 +5,16 @@ import { ActivityIndicator, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import DrawerNavigator from './src/views/DrawerNavigator';
-import ProfileSetupView from './src/views/EmployeeOnboardingScreen.js';
+import EmployeeOnboardingScreen from './src/views/EmployeeOnboardingScreen';
+import EmployerOnboardingScreen from './src/views/EmployerOnboardingScreen';
 import { EventProvider } from './src/views/EventContext';
 import ForgotPassView from './src/views/ForgotPassView';
 import InfoHighlightModule from './src/views/InfoHighlightModule';
 import LoginView from './src/views/LoginView';
 import ResetEmailView from './src/views/ResetEmailSentView';
+import { AlertHost } from './src/views/showAlert';
 import SignupView from './src/views/SignupView';
 import SplashScreen from './src/views/SplashScreen';
-
 
 function App() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
@@ -85,7 +86,10 @@ function App() {
         return <ResetEmailView onNavigate={handleNavigate} email={email} navigation={navigationProp} />;
 
       case 'EmployeeOnboarding':
-        return <ProfileSetupView employeeData={userData} onNavigate={handleNavigate} navigation={navigationProp} />;
+        return <EmployeeOnboardingScreen onNavigate={handleNavigate} />;
+
+      case 'EmployerOnboarding':
+        return <EmployerOnboardingScreen onNavigate={handleNavigate} />;
 
       case 'InfoHighlightModule':
         return <InfoHighlightModule onNavigate={handleNavigate} userData={userData} navigation={navigationProp} />;
@@ -111,6 +115,9 @@ function App() {
       <EventProvider>
         {renderScreen()}
       </EventProvider>
+
+      {/* Renders every showAlert() popup, on top of all screens */}
+      <AlertHost />
     </GestureHandlerRootView>
   );
 }

@@ -104,10 +104,6 @@ const role = normalizeRole(userData?.role || userData?.userRole || userRole);  /
             />
             <Drawer.Screen name="General Calendar" component={GeneralCalendar} />
 
-            <Drawer.Screen name="Profile">
-              {(props) => <ProfileScreenWrapper {...props} userRole={role} userData={userData} onNavigate={onNavigate} />}
-            </Drawer.Screen>
-
             {isEmployer && (
               <Drawer.Screen name="Posted Events">
                 {(props) => <EmployerPostsView {...props} userData={userData} />}
@@ -121,6 +117,10 @@ const role = normalizeRole(userData?.role || userData?.userRole || userRole);  /
               {(props) => <EditProfileScreen {...props} userRole={role} userData={userData} />}
             </Drawer.Screen>
 
+            <Drawer.Screen name="Profile">
+              {(props) => <ProfileScreenWrapper {...props} userRole={role} userData={userData} onNavigate={onNavigate} />}
+            </Drawer.Screen>
+            
             {isEmployer ? (
               <>
                 <Drawer.Screen name="PostNewEvent" options={hiddenFromDrawer}>

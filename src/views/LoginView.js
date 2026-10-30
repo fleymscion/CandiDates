@@ -31,10 +31,20 @@ export default function LoginView({ onNavigate }) {
       const result = await loginUser(email, password);
       const role = result.profile?.role?.toLowerCase();
 
+      const done = result.profile?.onboardingComplete === true;
+
       if (role === 'employee') {
-        onNavigate('EmployeeOnboarding');
+        if (done) {
+          onNavigate('MainApp', { profile: result.profile });
+        } else {
+          onNavigate('EmployeeOnboarding');
+        }
       } else if (role === 'employer') {
-        onNavigate('MainApp', { profile: result.profile });
+        if (done) {
+          onNavigate('MainApp', { profile: result.profile });
+        } else {
+          onNavigate('EmployerOnboarding');
+        }
       } else {
         showAlert('Login Failed', 'Your account role could not be identified.');
       }
