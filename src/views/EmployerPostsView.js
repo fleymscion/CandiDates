@@ -1,9 +1,17 @@
 import { getAuth } from 'firebase/auth';
 import { useMemo } from 'react';
-import { FlatList, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  FlatList,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import EventCard from './EventCard';
 import { useEvents } from './EventContext';
 import showAlert from './showAlert';
+import Template from './Header';
 
 const getUserId = (userData) =>
   userData?.id || userData?.uid || getAuth().currentUser?.uid;
@@ -12,7 +20,6 @@ const confirmDelete = (onConfirm) => {
   if (Platform.OS === 'web') {
     if (window.confirm('Delete this event?')) onConfirm();
   } else {
-    // Imported lazily so web builds don't depend on it
     const { Alert } = require('react-native');
     Alert.alert('Delete event', 'Delete this event?', [
       { text: 'Cancel', style: 'cancel' },
@@ -25,7 +32,6 @@ export default function EmployerPostsView({ navigation, userData }) {
   const { events = [], loading, deleteEvent } = useEvents();
   const myId = getUserId(userData);
 
-  // Only events this employer created (employerId is set when posting)
   const myPosts = useMemo(
     () =>
       myId
@@ -48,34 +54,23 @@ export default function EmployerPostsView({ navigation, userData }) {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.headerSide}
-          onPress={() => navigation.openDrawer()}
-          accessibilityRole="button"
-          accessibilityLabel="Open menu"
-        >
-          <Text style={styles.menu}>Menu</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Posted events</Text>
-        <View style={styles.headerSide} />
-      </View>
-
+    <Template title="Posted Events" navigation={navigation}>
       <TouchableOpacity
         style={styles.postButton}
         onPress={() => navigation.navigate('PostNewEvent')}
         accessibilityRole="button"
-        accessibilityLabel="Post new event"
+        accessibilityLabel="Post New Event"
       >
-        <Text style={styles.postButtonText}>+ Post new event</Text>
+        <Text style={styles.postButtonText}>Post New Event</Text>
       </TouchableOpacity>
 
       <FlatList
         data={myPosts}
         numColumns={2}
         keyExtractor={(item) => String(item.id)}
-        renderItem={({ item }) => <EventCard item={item} onDelete={handleDelete} />}
+        renderItem={({ item }) => (
+          <EventCard item={item} onDelete={handleDelete} />
+        )}
         contentContainerStyle={{ padding: 10, paddingTop: 4 }}
         ListEmptyComponent={
           <View style={styles.empty}>
@@ -83,29 +78,18 @@ export default function EmployerPostsView({ navigation, userData }) {
               {loading ? 'Loading...' : 'Start your first post'}
             </Text>
             {!loading && (
-              <Text style={styles.emptyBody}>Events you post will show up here.</Text>
+              <Text style={styles.emptyBody}>
+                Events you post will show up here.
+              </Text>
             )}
           </View>
         }
       />
-    </View>
+    </Template>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F9FF' },
-  header: {
-    backgroundColor: '#011F5B',
-    paddingTop: 40,
-    paddingBottom: 14,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerSide: { width: 60 },
-  menu: { color: '#fff', fontSize: 14 },
-  headerTitle: { color: '#fff', fontSize: 20, fontWeight: '600' },
   postButton: {
     backgroundColor: '#011F5B',
     margin: 16,
@@ -114,8 +98,23 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
   },
-  postButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  empty: { alignItems: 'center', marginTop: 40 },
-  emptyTitle: { fontSize: 18, fontWeight: '600', color: '#011F5B' },
-  emptyBody: { fontSize: 14, color: '#5A6B8C', marginTop: 4 },
+  postButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  empty: {
+    alignItems: 'center',
+    marginTop: 40,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#011F5B',
+  },
+  emptyBody: {
+    fontSize: 14,
+    color: '#5A6B8C',
+    marginTop: 4,
+  },
 });

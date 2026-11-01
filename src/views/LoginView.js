@@ -37,7 +37,7 @@ export default function LoginView({ onNavigate }) {
         if (done) {
           onNavigate('MainApp', { profile: result.profile });
         } else {
-          onNavigate('EmployeeOnboarding');
+          onNavigate('EmployeeOnboarding', { profile: result.profile });
         }
       } else if (role === 'employer') {
         if (done) {

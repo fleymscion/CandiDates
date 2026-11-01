@@ -22,12 +22,16 @@ export default function EmployeeOnboardingScreen({ onNavigate }) {
   const [checking, setChecking] = useState(true);
   const [stepError, setStepError] = useState('');
 
+  // Stores the logged-in user's Firestore profile
+  const [profile, setProfile] = useState(null);
+
   // If this employee already finished onboarding, skip straight to the app.
   useEffect(() => {
     let cancelled = false;
 
     const checkOnboarding = async () => {
       const user = auth.currentUser;
+
       if (!user) {
         onNavigate('Login');
         return;
@@ -35,10 +39,16 @@ export default function EmployeeOnboardingScreen({ onNavigate }) {
 
       try {
         const snap = await getDoc(doc(db, 'users', user.uid));
-        const profile = snap.exists() ? snap.data() : null;
 
-        if (!cancelled && profile?.onboardingComplete === true) {
-          onNavigate('MainApp', { profile });
+        const userProfile = snap.exists() ? snap.data() : null;
+
+        // Store the user's profile
+        if (!cancelled) {
+          setProfile(userProfile);
+        }
+
+        if (!cancelled && userProfile?.onboardingComplete === true) {
+          onNavigate('MainApp', { profile: userProfile });
           return;
         }
       } catch (error) {
@@ -49,9 +59,11 @@ export default function EmployeeOnboardingScreen({ onNavigate }) {
     };
 
     checkOnboarding();
+
     return () => {
       cancelled = true;
     };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -64,20 +76,24 @@ export default function EmployeeOnboardingScreen({ onNavigate }) {
       case 1:
       case 2:
         return '';
+
       case 3:
         return experiences.some(
           (e) => e.title.trim() !== '' && e.start.trim() !== ''
         )
           ? ''
           : 'Add at least one work experience with a job title and start date.';
+
       case 4:
         return educations.some(
           (e) => e.school.trim() !== '' && e.program.trim() !== ''
         )
           ? ''
           : 'Add at least one education with a school and program.';
+
       case 5:
         return skills.length > 0 ? '' : 'Add at least one skill to continue.';
+
       default:
         return '';
     }
@@ -85,16 +101,19 @@ export default function EmployeeOnboardingScreen({ onNavigate }) {
 
   const next = () => {
     const error = validateStep(step);
+
     if (error) {
       setStepError(error);
       return;
     }
+
     setStepError('');
     setStep((s) => Math.min(s + 1, 6));
   };
 
   const back = () => {
     setStepError('');
+
     if (step === 1) {
       onNavigate('Login');
     } else {
@@ -112,6 +131,7 @@ export default function EmployeeOnboardingScreen({ onNavigate }) {
         ],
         copyToCacheDirectory: true,
       });
+
       if (!result.canceled && result.assets?.length) {
         setCvFile(result.assets[0]);
       }
@@ -129,6 +149,7 @@ export default function EmployeeOnboardingScreen({ onNavigate }) {
         aspect: [1, 1],
         quality: 0.8,
       });
+
       if (!result.canceled && result.assets?.length) {
         setPhotoUri(result.assets[0].uri);
       }
@@ -140,18 +161,24 @@ export default function EmployeeOnboardingScreen({ onNavigate }) {
 
   const addSkill = () => {
     const value = skillInput.trim();
+
     if (!value) return;
+
     if (!skills.some((s) => s.toLowerCase() === value.toLowerCase())) {
       setSkills([...skills, value]);
     }
+
     setSkillInput('');
   };
 
-  const removeSkill = (skill) => setSkills(skills.filter((s) => s !== skill));
+  const removeSkill = (skill) =>
+    setSkills(skills.filter((s) => s !== skill));
 
   const updateExperience = (index, field, value) =>
     setExperiences((list) =>
-      list.map((item, i) => (i === index ? { ...item, [field]: value } : item))
+      list.map((item, i) =>
+        i === index ? { ...item, [field]: value } : item
+      )
     );
 
   const addExperience = () =>
@@ -159,7 +186,9 @@ export default function EmployeeOnboardingScreen({ onNavigate }) {
 
   const updateEducation = (index, field, value) =>
     setEducations((list) =>
-      list.map((item, i) => (i === index ? { ...item, [field]: value } : item))
+      list.map((item, i) =>
+        i === index ? { ...item, [field]: value } : item
+      )
     );
 
   const addEducation = () =>
@@ -169,6 +198,7 @@ export default function EmployeeOnboardingScreen({ onNavigate }) {
     if (submitting) return;
 
     const user = auth.currentUser;
+
     if (!user) {
       showAlert('Not signed in', 'Please log in again.');
       onNavigate('Login');
@@ -178,6 +208,7 @@ export default function EmployeeOnboardingScreen({ onNavigate }) {
     // Re-check every required step before saving
     for (let n = 1; n <= 5; n++) {
       const error = validateStep(n);
+
       if (error) {
         setStep(n);
         setStepError(error);
@@ -186,12 +217,17 @@ export default function EmployeeOnboardingScreen({ onNavigate }) {
     }
 
     setSubmitting(true);
+
     try {
       const userRef = doc(db, 'users', user.uid);
 
       // Never overwrite a profile that was already onboarded
       const existing = await getDoc(userRef);
-      if (existing.exists() && existing.data().onboardingComplete === true) {
+
+      if (
+        existing.exists() &&
+        existing.data().onboardingComplete === true
+      ) {
         onNavigate('MainApp', { profile: existing.data() });
         return;
       }
@@ -207,7 +243,11 @@ export default function EmployeeOnboardingScreen({ onNavigate }) {
       });
 
       const snap = await getDoc(userRef);
-      onNavigate('MainApp', { profile: snap.data() });
+      const updatedProfile = snap.data();
+
+      setProfile(updatedProfile);
+
+      onNavigate('MainApp', { profile: updatedProfile });
     } catch (error) {
       console.error('Onboarding submit error:', error);
       showAlert('Submit Failed', error?.message || 'Something went wrong.');
@@ -230,6 +270,7 @@ export default function EmployeeOnboardingScreen({ onNavigate }) {
       stepError={stepError}
       cvFile={cvFile}
       photoUri={photoUri}
+      profile={profile}
       experiences={experiences}
       educations={educations}
       skillInput={skillInput}

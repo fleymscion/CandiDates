@@ -9,14 +9,12 @@ import {
   StyleSheet,
   TextInput,
   View,
+  KeyboardAvoidingView,
 } from 'react-native';
 import AppText from './AppText';
 
-// stepReady = true when the current step's required fields are filled in.
-// The main button changes color to show the user they can move on.
 export default function EmployerOnboarding({
   step,
-  stepReady = false,
   logoUri,
   companyName,
   industry,
@@ -43,9 +41,9 @@ export default function EmployerOnboarding({
 }) {
   const titles = [
     'Company Info',
-    'Verify your business',
-    'About & contact',
-    'Review your profile',
+    'Verify Your Business',
+    'About & Contact',
+    'Review Your Profile',
   ];
 
   const subtitles = [
@@ -55,231 +53,284 @@ export default function EmployerOnboarding({
     "Here's what candidates will see.",
   ];
 
-  const mainButtonStyle = [styles.mainButton, stepReady && styles.mainButtonReady];
+  // Check if the required fields for the current step are filled in.
+  const isStepReady = (() => {
+    switch (step) {
+      case 1:
+        return (
+          companyName?.trim() !== '' &&
+          industry?.trim() !== '' &&
+          website?.trim() !== ''
+        );
+
+      case 2:
+        return !!permitFile;
+
+      case 3:
+        return (
+          description?.trim() !== '' &&
+          contactName?.trim() !== '' &&
+          contactEmail?.trim() !== ''
+        );
+
+      case 4:
+        return true;
+
+      default:
+        return false;
+    }
+  })();
+
+  const mainButtonStyle = [
+    styles.mainButton,
+    isStepReady ? styles.mainButtonReady : styles.mainButtonDisabled,
+  ];
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.headerContainer}>
-        <Pressable style={styles.backButton} onPress={back}>
-          <Ionicons name="arrow-back-circle" size={26} color="#FFFFFF" />
-        </Pressable>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.headerContainer}>
+          <Pressable style={styles.backButton} onPress={back}>
+            <Ionicons name={'arrow-back'} size={28} color="#FFFFFF" />
+          </Pressable>
 
-        <AppText style={styles.stepText}>Step {step} of 4</AppText>
+          <AppText style={styles.stepText}>Step {step} of 4</AppText>
 
-        <AppText style={styles.headerTitle}>{titles[step - 1]}</AppText>
+          <AppText style={styles.headerTitle}>{titles[step - 1]}</AppText>
 
-        <AppText style={styles.headerSubtitle}>{subtitles[step - 1]}</AppText>
-      </View>
+          <AppText style={styles.headerSubtitle}>{subtitles[step - 1]}</AppText>
+        </View>
 
-      <View style={styles.content}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={styles.container}
-        >
-          {step === 1 && (
-            <>
-              <View style={styles.logoRow}>
-                <Pressable style={styles.logoBox} onPress={pickLogo}>
-                  {logoUri ? (
-                    <Image source={{ uri: logoUri }} style={styles.logoImage} />
-                  ) : (
-                    <Ionicons name="business" size={50} color="#B5B5B5" />
-                  )}
-                </Pressable>
-
-                <View style={styles.logoRight}>
-                  <Pressable style={styles.logoButton} onPress={pickLogo}>
-                    <AppText style={styles.logoButtonText}>Upload logo</AppText>
-                  </Pressable>
-                  <AppText style={styles.smallHint}>Square, min 200x200px</AppText>
-                </View>
-              </View>
-
-              <AppText style={styles.label}>Company Name</AppText>
-              <TextInput
-                style={styles.input}
-                placeholder="eg. Northwind Studios"
-                placeholderTextColor="#777777"
-                value={companyName}
-                onChangeText={setCompanyName}
-              />
-
-              <AppText style={styles.label}>Industry</AppText>
-              <TextInput
-                style={styles.input}
-                placeholder="eg. Software, Retail, Design"
-                placeholderTextColor="#777777"
-                value={industry}
-                onChangeText={setIndustry}
-              />
-
-              <AppText style={styles.label}>Company Website</AppText>
-              <TextInput
-                style={styles.input}
-                placeholder="https://"
-                placeholderTextColor="#777777"
-                value={website}
-                onChangeText={setWebsite}
-                autoCapitalize="none"
-                keyboardType="url"
-              />
-
-              <Pressable style={mainButtonStyle} onPress={next}>
-                <AppText style={styles.buttonText}>Next</AppText>
-              </Pressable>
-            </>
-          )}
-
-          {step === 2 && (
-            <>
-              <View style={styles.whyCard}>
-                <Ionicons name="shield-checkmark-outline" size={24} color="#011F5B" />
-                <View style={styles.whyTextBox}>
-                  <AppText style={styles.whyTitle}>Why we ask for this</AppText>
-                  <AppText style={styles.whyText}>
-                    Verification keeps job seekers safe from fake listings.
-                  </AppText>
-                </View>
-              </View>
-
-              <Pressable style={styles.uploadBox} onPress={pickPermit}>
-                <Ionicons
-                  name={permitFile ? 'document-text-outline' : 'cloud-upload-outline'}
-                  size={46}
-                  color="#7891BD"
-                />
-                <AppText style={styles.uploadTitle}>
-                  {permitFile ? permitFile.name : 'Upload business permit or registration'}
-                </AppText>
-                <AppText style={styles.smallHint}>
-                  {permitFile ? 'Tap to replace' : 'PDF or image, max 10MB'}
-                </AppText>
-                {!permitFile && (
-                  <AppText style={styles.browseText}>Browse Files</AppText>
-                )}
-              </Pressable>
-
-              <AppText style={styles.reviewNote}>
-                Review usually takes 1-2 business days. You can finish your profile in the meantime.
-              </AppText>
-
-              <Pressable style={mainButtonStyle} onPress={submitPermit}>
-                <AppText style={styles.buttonText}>Submit & Continue</AppText>
-              </Pressable>
-
-              <Pressable style={styles.skipButton} onPress={skipPermit}>
-                <AppText style={styles.buttonText}>Do this later</AppText>
-              </Pressable>
-            </>
-          )}
-
-          {step === 3 && (
-            <>
-              <AppText style={styles.label}>Company description</AppText>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                placeholder="Tell candidates a bit about your company..."
-                placeholderTextColor="#777777"
-                value={description}
-                onChangeText={setDescription}
-                multiline
-                textAlignVertical="top"
-              />
-
-              <AppText style={styles.label}>Hiring contact name</AppText>
-              <TextInput
-                style={styles.input}
-                placeholder="eg. Juan Dela Cruz"
-                placeholderTextColor="#777777"
-                value={contactName}
-                onChangeText={setContactName}
-              />
-
-              <AppText style={styles.label}>Email</AppText>
-              <TextInput
-                style={styles.input}
-                placeholder="hiring@company.com"
-                placeholderTextColor="#777777"
-                value={contactEmail}
-                onChangeText={setContactEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-              />
-
-              <AppText style={styles.label}>Social links (optional)</AppText>
-              <TextInput
-                style={styles.input}
-                placeholder="LinkedIn, Facebook"
-                placeholderTextColor="#777777"
-                value={socialLinks}
-                onChangeText={setSocialLinks}
-                autoCapitalize="none"
-              />
-
-              <Pressable style={mainButtonStyle} onPress={next}>
-                <AppText style={styles.buttonText}>Next</AppText>
-              </Pressable>
-            </>
-          )}
-
-          {step === 4 && (
-            <>
-              <View style={styles.reviewCard}>
-                <View style={styles.reviewTop}>
-                  <View style={styles.reviewLogo}>
+        <View style={styles.content}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.container}
+            keyboardDismissMode="on-drag"
+          >
+            {step === 1 && (
+              <>
+                <View style={styles.logoRow}>
+                  <Pressable style={styles.logoBox} onPress={pickLogo}>
                     {logoUri ? (
                       <Image source={{ uri: logoUri }} style={styles.logoImage} />
                     ) : (
-                      <Ionicons name="business" size={32} color="#B5B5B5" />
+                      <Ionicons name="business" size={50} color="#B5B5B5" />
                     )}
-                  </View>
+                  </Pressable>
 
-                  <View style={styles.reviewTopText}>
-                    <AppText style={styles.reviewName}>
-                      {companyName || 'Company name'}
-                    </AppText>
-                    <AppText style={styles.reviewDetail}>
-                      {industry || 'Industry'}
+                  <View style={styles.logoRight}>
+                    <Pressable style={styles.logoButton} onPress={pickLogo}>
+                      <AppText style={styles.logoButtonText}>Upload logo</AppText>
+                    </Pressable>
+                    <AppText style={styles.smallHint}>Square, min 200x200px</AppText>
+                  </View>
+                </View>
+
+                <AppText style={styles.label}>Company Name</AppText>
+                <TextInput
+                  style={styles.input}
+                  placeholder="eg. Northwind Studios"
+                  placeholderTextColor="#777777"
+                  value={companyName}
+                  onChangeText={setCompanyName}
+                />
+
+                <AppText style={styles.label}>Industry</AppText>
+                <TextInput
+                  style={styles.input}
+                  placeholder="eg. Software, Retail, Design"
+                  placeholderTextColor="#777777"
+                  value={industry}
+                  onChangeText={setIndustry}
+                />
+
+                <AppText style={styles.label}>Company Website</AppText>
+                <TextInput
+                  style={styles.input}
+                  placeholder="https://"
+                  placeholderTextColor="#777777"
+                  value={website}
+                  onChangeText={setWebsite}
+                  autoCapitalize="none"
+                  keyboardType="url"
+                />
+
+                <Pressable
+                  style={mainButtonStyle}
+                  onPress={next}
+                  disabled={!isStepReady}
+                >
+                  <AppText style={styles.buttonText}>Next</AppText>
+                </Pressable>
+              </>
+            )}
+
+            {step === 2 && (
+              <>
+                <View style={styles.whyCard}>
+                  <Ionicons name="shield-checkmark-outline" size={24} color="#011F5B" />
+                  <View style={styles.whyTextBox}>
+                    <AppText style={styles.whyTitle}>Why we ask for this</AppText>
+                    <AppText style={styles.whyText}>
+                      Verification keeps job seekers safe from fake listings.
                     </AppText>
                   </View>
                 </View>
 
-                <AppText style={styles.reviewDetail}>
-                  {description || 'No description added'}
+                <Pressable style={styles.uploadBox} onPress={pickPermit}>
+                  <Ionicons
+                    name={permitFile ? 'document-text-outline' : 'cloud-upload-outline'}
+                    size={46}
+                    color="#7891BD"
+                  />
+                  <AppText style={styles.uploadTitle}>
+                    {permitFile ? permitFile.name : 'Upload business permit or registration'}
+                  </AppText>
+                  <AppText style={styles.smallHint}>
+                    {permitFile ? 'Tap to replace' : 'PDF or image, max 10MB'}
+                  </AppText>
+                  {!permitFile && (
+                    <AppText style={styles.browseText}>Browse Files</AppText>
+                  )}
+                </Pressable>
+
+                <AppText style={styles.reviewNote}>
+                  Review usually takes 1-2 business days. You can finish your profile in the meantime.
                 </AppText>
-              </View>
 
-              <View style={[styles.reviewCard, styles.row]}>
-                <AppText style={styles.rowLabel}>Website</AppText>
-                <AppText style={styles.rowValue}>{website || '-'}</AppText>
-              </View>
+                <Pressable
+                  style={mainButtonStyle}
+                  onPress={submitPermit}
+                  disabled={!isStepReady}
+                >
+                  <AppText style={styles.buttonText}>Submit & Continue</AppText>
+                </Pressable>
 
-              <View style={[styles.reviewCard, styles.row]}>
-                <AppText style={styles.rowLabel}>Hiring Contact</AppText>
-                <AppText style={styles.rowValue}>{contactName || '-'}</AppText>
-              </View>
+                <Pressable style={styles.skipButton} onPress={skipPermit}>
+                  <AppText style={styles.buttonText}>Do this later</AppText>
+                </Pressable>
+              </>
+            )}
 
-              <View style={[styles.reviewCard, styles.row]}>
-                <AppText style={styles.rowLabel}>Contact email</AppText>
-                <AppText style={styles.rowValue}>{contactEmail || '-'}</AppText>
-              </View>
+            {step === 3 && (
+              <>
+                <AppText style={styles.label}>Company description</AppText>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  placeholder="Tell candidates a bit about your company..."
+                  placeholderTextColor="#777777"
+                  value={description}
+                  onChangeText={setDescription}
+                  multiline
+                  textAlignVertical="top"
+                />
 
-              <View style={styles.statusRow}>
-                <AppText style={styles.statusText}>Verification</AppText>
-                <AppText style={styles.statusText}>
-                  {permitFile ? 'Pending review' : 'Not submitted'}
-                </AppText>
-              </View>
+                <AppText style={styles.label}>Hiring contact name</AppText>
+                <TextInput
+                  style={styles.input}
+                  placeholder="eg. Juan Dela Cruz"
+                  placeholderTextColor="#777777"
+                  value={contactName}
+                  onChangeText={setContactName}
+                />
 
-              <Pressable style={mainButtonStyle} onPress={finish}>
-                <AppText style={styles.buttonText}>Finish Setup</AppText>
-              </Pressable>
-            </>
-          )}
-        </ScrollView>
-      </View>
-    </SafeAreaView>
+                <AppText style={styles.label}>Email</AppText>
+                <TextInput
+                  style={styles.input}
+                  placeholder="hiring@company.com"
+                  placeholderTextColor="#777777"
+                  value={contactEmail}
+                  onChangeText={setContactEmail}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                />
+
+                <AppText style={styles.label}>Social links (optional)</AppText>
+                <TextInput
+                  style={styles.input}
+                  placeholder="LinkedIn, Facebook"
+                  placeholderTextColor="#777777"
+                  value={socialLinks}
+                  onChangeText={setSocialLinks}
+                  autoCapitalize="none"
+                />
+
+                <Pressable
+                  style={mainButtonStyle}
+                  onPress={next}
+                  disabled={!isStepReady}
+                >
+                  <AppText style={styles.buttonText}>Next</AppText>
+                </Pressable>
+              </>
+            )}
+
+            {step === 4 && (
+              <>
+                <View style={styles.reviewCard}>
+                  <View style={styles.reviewTop}>
+                    <View style={styles.reviewLogo}>
+                      {logoUri ? (
+                        <Image source={{ uri: logoUri }} style={styles.logoImage} />
+                      ) : (
+                        <Ionicons name="business" size={32} color="#B5B5B5" />
+                      )}
+                    </View>
+
+                    <View style={styles.reviewTopText}>
+                      <AppText style={styles.reviewName}>
+                        {companyName || 'Company name'}
+                      </AppText>
+                      <AppText style={styles.reviewDetail}>
+                        {industry || 'Industry'}
+                      </AppText>
+                    </View>
+                  </View>
+
+                  <AppText style={styles.reviewDetail}>
+                    {description || 'No description added'}
+                  </AppText>
+                </View>
+
+                <View style={[styles.reviewCard, styles.row]}>
+                  <AppText style={styles.rowLabel}>Website</AppText>
+                  <AppText style={styles.rowValue}>{website || '-'}</AppText>
+                </View>
+
+                <View style={[styles.reviewCard, styles.row]}>
+                  <AppText style={styles.rowLabel}>Hiring Contact</AppText>
+                  <AppText style={styles.rowValue}>{contactName || '-'}</AppText>
+                </View>
+
+                <View style={[styles.reviewCard, styles.row]}>
+                  <AppText style={styles.rowLabel}>Contact email</AppText>
+                  <AppText style={styles.rowValue}>{contactEmail || '-'}</AppText>
+                </View>
+
+                <View style={styles.statusRow}>
+                  <AppText style={styles.statusText}>Verification</AppText>
+                  <AppText style={styles.statusText}>
+                    {permitFile ? 'Pending review' : 'Not submitted'}
+                  </AppText>
+                </View>
+
+                <Pressable
+                  style={mainButtonStyle}
+                  onPress={finish}
+                  disabled={!isStepReady}
+                >
+                  <AppText style={styles.buttonText}>Finish Setup</AppText>
+                </Pressable>
+              </>
+            )}
+          </ScrollView>
+        </View>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -367,7 +418,6 @@ const styles = StyleSheet.create({
 
   mainButton: {
     height: 41,
-    backgroundColor: '#7F9DD5',
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
@@ -375,14 +425,18 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
-  // Darker color shown when the step is complete and the user can continue
   mainButtonReady: {
     backgroundColor: '#2B5195',
   },
 
+  mainButtonDisabled: {
+    backgroundColor: '#7F9DD5',
+    opacity: 0.7,
+  },
+
   skipButton: {
     height: 41,
-    backgroundColor: '#5B74A3',
+    backgroundColor: '#2B5195',
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',

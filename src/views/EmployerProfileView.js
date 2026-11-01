@@ -103,11 +103,6 @@ export default function EmployerProfileView({ navigation, employerData, onNaviga
             onPress={() => EmployerProfileController.handlePostEvent(navigation)}
           />
           <MenuItem
-            icon="globe-outline"
-            label="Dashboard"
-            onPress={() => EmployerProfileController.handleDashboard(navigation)}
-          />
-          <MenuItem
             icon="notifications-outline"
             label="Notification Preferences"
             onPress={() => setNotifModalVisible(true)}

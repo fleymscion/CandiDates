@@ -46,11 +46,7 @@ export default function ForgotPassView({ onNavigate }) {
           style={styles.backButton}
           onPress={() => onNavigate('Login')}
         >
-          <Ionicons
-            name="chevron-back"
-            size={30}
-            color="#FFFFFF"
-          />
+          <Ionicons name={'arrow-back'} size={28} color="#FFFFFF" />
         </Pressable>
 
         <View style={styles.headingContainer}>

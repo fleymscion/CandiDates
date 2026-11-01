@@ -39,7 +39,7 @@ export default function EventDetailModal({ visible, event, onClose }) {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <Pressable onPress={onClose} hitSlop={10} style={styles.backButton}>
-            <Ionicons name="arrow-back-circle" size={30} color="#FFFFFF" />
+            <Ionicons name={'arrow-back'} size={28} color="#FFFFFF" />
           </Pressable>
           <AppText style={styles.headerTitle}>
             {isSaved ? 'Date Saved' : 'Event Details'}

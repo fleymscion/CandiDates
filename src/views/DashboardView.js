@@ -31,18 +31,8 @@ export default function DashboardView({ navigation, route }) {
     }, [postId, tab])
   );
 
-  if (!postId) {
-    return (
-      <Template title="Dashboard" navigation={navigation}>
-        <TextStyle style={styles.candidateSub}>
-          Open one of your posts and tap Stats to see its analytics.
-        </TextStyle>
-      </Template>
-    );
-  }
-
   return (
-    <Template title="Dashboard" navigation={navigation}>
+    <Template title="Dashboard" navigation={navigation} showBack={true}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {error ? <TextStyle style={styles.candidateSub}>{error}</TextStyle> : null}
 

@@ -15,7 +15,7 @@ import AppText from './AppText';
 
 const TITLES = [
   'Build Your Profile',
-  'Add a profile photo',
+  'Add a Profile Photo',
   'Work Experience',
   'Your Education',
   'Your Skills',
@@ -32,10 +32,12 @@ const SUBTITLES = [
 ];
 
 export default function ProfileSetupView({
+  route,
   step,
   stepError,
   cvFile,
   photoUri,
+  profile,
   experiences = [],
   educations = [],
   skillInput,
@@ -54,6 +56,8 @@ export default function ProfileSetupView({
   addEducation,
   submit,
 }) {
+  const userProfile = profile || route?.params?.profile;
+
   const filledExperiences = experiences.filter((e) => e.title.trim() !== '');
   const filledEducations = educations.filter((e) => e.school.trim() !== '');
 
@@ -61,7 +65,7 @@ export default function ProfileSetupView({
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.headerContainer}>
         <Pressable style={styles.backButton} onPress={back}>
-          <Ionicons name="arrow-back-circle" size={26} color="#FFFFFF" />
+          <Ionicons name={'arrow-back'} size={28} color="#FFFFFF" />
         </Pressable>
 
         <AppText style={styles.stepText}>Step {step} of 6</AppText>
@@ -69,7 +73,9 @@ export default function ProfileSetupView({
         <AppText style={styles.headerTitle}>{TITLES[step - 1]}</AppText>
 
         {SUBTITLES[step - 1] !== '' && (
-          <AppText style={styles.headerSubtitle}>{SUBTITLES[step - 1]}</AppText>
+          <AppText style={styles.headerSubtitle}>
+            {SUBTITLES[step - 1]}
+          </AppText>
         )}
       </View>
 
@@ -94,16 +100,23 @@ export default function ProfileSetupView({
                   size={46}
                   color="#7891BD"
                 />
+
                 <AppText style={styles.uploadText}>
                   {cvFile ? cvFile.name : 'Click to browse files'}
                 </AppText>
+
                 {cvFile && (
-                  <AppText style={styles.uploadSubtext}>Tap to replace</AppText>
+                  <AppText style={styles.uploadSubtext}>
+                    Tap to replace
+                  </AppText>
                 )}
               </Pressable>
 
               <Pressable
-                style={[styles.mainButton, !cvFile && styles.disabledButton]}
+                style={[
+                  styles.mainButton,
+                  cvFile ? styles.activeButton : styles.disabledButton,
+                ]}
                 onPress={next}
                 disabled={!cvFile}
               >
@@ -121,7 +134,10 @@ export default function ProfileSetupView({
               <View style={styles.photoWrapper}>
                 <Pressable style={styles.photoCircle} onPress={pickImage}>
                   {photoUri ? (
-                    <Image source={{ uri: photoUri }} style={styles.photoImage} />
+                    <Image
+                      source={{ uri: photoUri }}
+                      style={styles.photoImage}
+                    />
                   ) : (
                     <Ionicons name="person" size={130} color="#B5B5B5" />
                   )}
@@ -134,7 +150,14 @@ export default function ProfileSetupView({
 
               <AppText style={styles.photoHint}>JPG or PNG, max 5MB</AppText>
 
-              <Pressable style={styles.mainButton} onPress={next}>
+              <Pressable
+                style={[
+                  styles.mainButton,
+                  photoUri ? styles.activeButton : styles.disabledButton,
+                ]}
+                onPress={next}
+                disabled={!photoUri}
+              >
                 <AppText style={styles.buttonText}>Next</AppText>
               </Pressable>
 
@@ -155,7 +178,9 @@ export default function ProfileSetupView({
                     placeholder="Type here..."
                     placeholderTextColor="#777777"
                     value={exp.title}
-                    onChangeText={(text) => updateExperience(index, 'title', text)}
+                    onChangeText={(text) =>
+                      updateExperience(index, 'title', text)
+                    }
                   />
 
                   <AppText style={styles.label}>Duration</AppText>
@@ -166,7 +191,9 @@ export default function ProfileSetupView({
                       placeholder="Start Date"
                       placeholderTextColor="#777777"
                       value={exp.start}
-                      onChangeText={(text) => updateExperience(index, 'start', text)}
+                      onChangeText={(text) =>
+                        updateExperience(index, 'start', text)
+                      }
                     />
 
                     <TextInput
@@ -174,7 +201,9 @@ export default function ProfileSetupView({
                       placeholder="End Date"
                       placeholderTextColor="#777777"
                       value={exp.end}
-                      onChangeText={(text) => updateExperience(index, 'end', text)}
+                      onChangeText={(text) =>
+                        updateExperience(index, 'end', text)
+                      }
                     />
                   </View>
                 </View>
@@ -184,7 +213,10 @@ export default function ProfileSetupView({
                 <AppText style={styles.addText}>+ Add Experience</AppText>
               </Pressable>
 
-              <Pressable style={styles.mainButton} onPress={next}>
+              <Pressable
+                style={[styles.mainButton, styles.activeButton]}
+                onPress={next}
+              >
                 <AppText style={styles.buttonText}>Next</AppText>
               </Pressable>
             </>
@@ -201,7 +233,9 @@ export default function ProfileSetupView({
                     placeholder="Type here..."
                     placeholderTextColor="#777777"
                     value={edu.school}
-                    onChangeText={(text) => updateEducation(index, 'school', text)}
+                    onChangeText={(text) =>
+                      updateEducation(index, 'school', text)
+                    }
                   />
 
                   <AppText style={styles.label}>Program</AppText>
@@ -211,7 +245,9 @@ export default function ProfileSetupView({
                     placeholder="Type here..."
                     placeholderTextColor="#777777"
                     value={edu.program}
-                    onChangeText={(text) => updateEducation(index, 'program', text)}
+                    onChangeText={(text) =>
+                      updateEducation(index, 'program', text)
+                    }
                   />
 
                   <AppText style={styles.label}>Duration</AppText>
@@ -222,7 +258,9 @@ export default function ProfileSetupView({
                       placeholder="Start Date"
                       placeholderTextColor="#777777"
                       value={edu.start}
-                      onChangeText={(text) => updateEducation(index, 'start', text)}
+                      onChangeText={(text) =>
+                        updateEducation(index, 'start', text)
+                      }
                     />
 
                     <TextInput
@@ -230,7 +268,9 @@ export default function ProfileSetupView({
                       placeholder="End Date"
                       placeholderTextColor="#777777"
                       value={edu.end}
-                      onChangeText={(text) => updateEducation(index, 'end', text)}
+                      onChangeText={(text) =>
+                        updateEducation(index, 'end', text)
+                      }
                     />
                   </View>
                 </View>
@@ -240,7 +280,10 @@ export default function ProfileSetupView({
                 <AppText style={styles.addText}>+ Add Education</AppText>
               </Pressable>
 
-              <Pressable style={styles.mainButton} onPress={next}>
+              <Pressable
+                style={[styles.mainButton, styles.activeButton]}
+                onPress={next}
+              >
                 <AppText style={styles.buttonText}>Next</AppText>
               </Pressable>
             </>
@@ -248,7 +291,9 @@ export default function ProfileSetupView({
 
           {step === 5 && (
             <>
-              <AppText style={styles.label}>Type a skill and press enter</AppText>
+              <AppText style={styles.label}>
+                Type a skill and press enter
+              </AppText>
 
               <View style={styles.skillInputContainer}>
                 <TextInput
@@ -273,13 +318,21 @@ export default function ProfileSetupView({
                     <AppText style={styles.chipText}>{skill}</AppText>
 
                     <Pressable onPress={() => removeSkill(skill)}>
-                      <Ionicons name="close" size={14} color="#011F5B" style={{ marginLeft: 6 }} />
+                      <Ionicons
+                        name="close"
+                        size={14}
+                        color="#011F5B"
+                        style={{ marginLeft: 6 }}
+                      />
                     </Pressable>
                   </View>
                 ))}
               </View>
 
-              <Pressable style={styles.mainButton} onPress={next}>
+              <Pressable
+                style={[styles.mainButton, styles.activeButton]}
+                onPress={next}
+              >
                 <AppText style={styles.buttonText}>Next</AppText>
               </Pressable>
             </>
@@ -290,16 +343,23 @@ export default function ProfileSetupView({
               <View style={styles.reviewTop}>
                 <View style={styles.reviewAvatar}>
                   {photoUri ? (
-                    <Image source={{ uri: photoUri }} style={styles.photoImage} />
+                    <Image
+                      source={{ uri: photoUri }}
+                      style={styles.photoImage}
+                    />
                   ) : (
                     <Ionicons name="person" size={50} color="#B5B5B5" />
                   )}
                 </View>
 
                 <View>
-                  <AppText style={styles.reviewName}>Name</AppText>
-                  <AppText style={styles.reviewDetail}>Details</AppText>
-                  <AppText style={styles.reviewDetail}>Details</AppText>
+                  <AppText style={styles.reviewName}>
+                    {userProfile?.username || ''}
+                  </AppText>
+
+                  <AppText style={styles.reviewDetail}>
+                    {userProfile?.email || ''}
+                  </AppText>
                 </View>
               </View>
 
@@ -325,7 +385,8 @@ export default function ProfileSetupView({
                 ) : (
                   filledEducations.map((e, i) => (
                     <AppText key={i} style={styles.reviewDetail}>
-                      {e.school}{e.program ? ` - ${e.program}` : ''}
+                      {e.school}
+                      {e.program ? ` - ${e.program}` : ''}
                     </AppText>
                   ))
                 )}
@@ -336,7 +397,9 @@ export default function ProfileSetupView({
 
                 <View style={styles.chipRow}>
                   {skills.length === 0 ? (
-                    <AppText style={styles.reviewDetail}>No skills added</AppText>
+                    <AppText style={styles.reviewDetail}>
+                      No skills added
+                    </AppText>
                   ) : (
                     skills.map((skill) => (
                       <View key={skill} style={styles.chip}>
@@ -351,13 +414,17 @@ export default function ProfileSetupView({
                 <AppText style={styles.resumeText}>
                   {cvFile ? cvFile.name : 'Resume'}
                 </AppText>
+
                 <AppText style={styles.resumeText}>
                   {cvFile ? 'Uploaded' : 'Status'}
                 </AppText>
               </View>
 
               <Pressable
-                style={[styles.mainButton, submitting && styles.disabledButton]}
+                style={[
+                  styles.mainButton,
+                  submitting ? styles.disabledButton : styles.activeButton,
+                ]}
                 onPress={submit}
                 disabled={submitting}
               >
@@ -475,13 +542,18 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
+  activeButton: {
+    backgroundColor: '#2B5195',
+  },
+
   disabledButton: {
+    backgroundColor: '#7F9DD5',
     opacity: 0.5,
   },
 
   skipButton: {
     height: 41,
-    backgroundColor: '#5B74A3',
+    backgroundColor: '#2B5195',
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',

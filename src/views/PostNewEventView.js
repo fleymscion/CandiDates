@@ -4,7 +4,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,6 +13,7 @@ import {
 import { auth, db } from '../config/firebase';
 import { useEvents } from './EventContext';
 import showAlert from './showAlert';
+import Template from './Header';
 
 export default function PostNewEventView({ navigation }) {
   const { addEvent } = useEvents();
@@ -38,9 +38,11 @@ export default function PostNewEventView({ navigation }) {
 
     setPosting(true);
 
-    // Copy the employer's company info onto the event so employees can see it
-    // without needing read access to the employer's private profile.
+    // Copy the employer's company info onto the event
+    // so employees can see it without needing read access
+    // to the employer's private profile.
     let profile = {};
+
     try {
       const snap = await getDoc(doc(db, 'users', auth.currentUser.uid));
       profile = snap.exists() ? snap.data() : {};
@@ -64,6 +66,7 @@ export default function PostNewEventView({ navigation }) {
       contactEmail: profile.contactEmail || profile.email || '',
       contactPhone: contactPhone.trim() || profile.phone || '',
     });
+
     setPosting(false);
 
     if (ok) {
@@ -73,6 +76,7 @@ export default function PostNewEventView({ navigation }) {
       setDescription('');
       setContactPhone('');
       setTagsText('');
+
       showAlert('Posted', 'Your event has been posted.', () =>
         navigation.goBack()
       );
@@ -85,22 +89,15 @@ export default function PostNewEventView({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <Pressable style={styles.headerSide} onPress={() => navigation.goBack()}>
-          <Text style={styles.headerLink}>Back</Text>
-        </Pressable>
-        <Text style={styles.headerTitle}>Post new event</Text>
-        <View style={styles.headerSide} />
-      </View>
-
+    <Template title="Post New Event" navigation={navigation} showBack={true}>
       <KeyboardAvoidingView
-        style={styles.content}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          keyboardDismissMode="on-drag"
           contentContainerStyle={styles.container}
         >
           <Text style={styles.label}>Event title</Text>
@@ -167,35 +164,32 @@ export default function PostNewEventView({ navigation }) {
             disabled={posting}
           >
             <Text style={styles.postButtonText}>
-              {posting ? 'Posting...' : 'Post event'}
+              {posting ? 'Posting...' : 'Post Event'}
             </Text>
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </Template>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#011F5B' },
-  header: {
-    height: 70,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerSide: { width: 60 },
-  headerLink: { color: '#FFFFFF', fontSize: 14 },
-  headerTitle: { color: '#FFFFFF', fontSize: 20, fontWeight: '600' },
-  content: {
+  keyboardContainer: {
     flex: 1,
-    backgroundColor: '#F5F9FF',
+  },
+
+  container: {
     paddingHorizontal: 20,
     paddingVertical: 20,
+    paddingBottom: 30,
   },
-  container: { paddingBottom: 30 },
-  label: { fontSize: 14, fontWeight: '600', marginBottom: 8 },
+
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+
   input: {
     height: 40,
     backgroundColor: '#FFFFFF',
@@ -208,7 +202,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 18,
   },
-  textArea: { height: 110, paddingTop: 10 },
+
+  textArea: {
+    height: 110,
+    paddingTop: 10,
+  },
+
   postButton: {
     height: 46,
     backgroundColor: '#7F9DD5',
@@ -217,6 +216,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 5,
   },
-  postButtonActive: { backgroundColor: '#2B5195' },
-  postButtonText: { color: '#FFFFFF', fontSize: 18, fontWeight: '600' },
+
+  postButtonActive: {
+    backgroundColor: '#2B5195',
+  },
+
+  postButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
+  },
 });
