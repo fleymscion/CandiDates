@@ -409,6 +409,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Commissioner',
     fontSize: 14,
     marginBottom: 18,
+    color: '#000000',
   },
 
   textArea: {
