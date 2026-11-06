@@ -239,6 +239,7 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     fontFamily: 'Commissioner',
     fontSize: 18,
+    color: '#011F5B',
   },
 
   rememberForgotContainer: {
