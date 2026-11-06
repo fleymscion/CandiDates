@@ -1,6 +1,6 @@
 # CandiDates
 
-CandiDates is a mobile and web app that connects **employees** (job seekers) with **employers** through a shared calendar of hiring events. Employers post events such as interview sessions and job fairs. Employees browse the calendar, save the events they like, dismiss the ones they don't, and open a detail popup to read about the company. Employers can see how each of their posts is performing.
+CandiDates is a mobile and web app that connects **employees** / **candidates** (job seekers) with **employers** through a shared calendar of hiring events. Employers post events such as interview sessions and job fairs. Employees browse the calendar, save the events they like, dismiss the ones they don't, and open a detail popup to read about the company. Employers can see how each of their posts is performing.
 
 Built with React Native and Expo, with Firebase (Authentication and Cloud Firestore) as the backend.
 
